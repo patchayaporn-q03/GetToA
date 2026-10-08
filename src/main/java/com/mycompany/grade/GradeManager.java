@@ -11,6 +11,21 @@ public class GradeManager {
         puzzleScore = 0;
     }
 
+    /**
+     * รับคะแนนจาก GradeBox
+     * @param score คะแนนที่ได้จากการเปิดกล่อง
+     * กำหนดคะแนน Puzzle
+     * @param score คะแนนที่ได้จาก Puzzle
+     * @param boxScore คะแนนจากกล่อง
+     * @param puzzleScore คะแนนจาก puzzle
+     * @param getTotalScore คะแนนรวม
+     * @param SaveData บันทึกผล
+     */
+
+    public void setBoxScore(int score) {
+        boxScore = score;
+    }
+
     public void addBoxScore(int score) {
         boxScore += score;
 
@@ -53,11 +68,14 @@ public class GradeManager {
  
     }
 
-    public SaveData.savePlayerScore{
-        getBoxScore();
-        getPuzzleScore();
-        getTotalScore();
-        getGrade();
+    public void saveResult() {
+
+        SaveData.savePlayerScore(
+            getBoxScore(),
+            getPuzzleScore(),
+            getTotalScore(),
+            getGrade()
+        );
     }
 }
 
