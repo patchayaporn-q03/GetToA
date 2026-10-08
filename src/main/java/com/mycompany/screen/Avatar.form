@@ -71,6 +71,7 @@
         <Component class="javax.swing.JRadioButton" name="chickgirl">
           <Properties>
             <Property name="text" type="java.lang.String" value="jRadioButton1"/>
+            <Property name="contentAreaFilled" type="boolean" value="false"/>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/images/charecter/female_normal.png"/>
             </Property>
@@ -87,6 +88,7 @@
         <Component class="javax.swing.JRadioButton" name="chickboy">
           <Properties>
             <Property name="text" type="java.lang.String" value="jRadioButton1"/>
+            <Property name="contentAreaFilled" type="boolean" value="false"/>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
               <Image iconType="3" name="/images/charecter/male_normal.png"/>
             </Property>
@@ -110,7 +112,7 @@
           </Events>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="149" y="63" width="160" height="60"/>
+              <AbsoluteConstraints x="150" y="120" width="160" height="30"/>
             </Constraint>
           </Constraints>
         </Component>
@@ -272,11 +274,13 @@
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="99" green="99" red="99" type="rgb"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="jLabel1"/>
+            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+              <Image iconType="3" name="/images/loading/charecterloading.png"/>
+            </Property>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
-              <AbsoluteConstraints x="110" y="150" width="240" height="270"/>
+              <AbsoluteConstraints x="130" y="150" width="200" height="270"/>
             </Constraint>
           </Constraints>
         </Component>
