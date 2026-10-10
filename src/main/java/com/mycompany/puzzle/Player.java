@@ -1,4 +1,4 @@
-﻿package com.mycompany.puzzle;
+package com.mycompany.puzzle;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;

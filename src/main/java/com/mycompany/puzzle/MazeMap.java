@@ -1,4 +1,4 @@
-﻿package com.mycompany.puzzle;
+package com.mycompany.puzzle;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;

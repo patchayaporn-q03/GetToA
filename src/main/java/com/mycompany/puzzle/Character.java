@@ -1,4 +1,4 @@
-﻿package com.mycompany.puzzle;
+package com.mycompany.puzzle;
 
 import java.awt.Rectangle;
 
