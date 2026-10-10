@@ -15,8 +15,43 @@ public class GameMap1 extends javax.swing.JPanel {
      */
     public GameMap1() {
         initComponents();
+        setupBoxes();
         setupPlayer();
         setupBackButton();
+    }
+
+    //กล่องสมบัติ 6 กล่อง วางตายตัว: 5 กล่องบนพื้นที่เดินได้ + 1 กล่องบนโต๊ะ (โต๊ะแถวบนขวา)
+    private static final int BOX_SIZE = 40;
+    private static final int[][] FLOOR_BOXES = {
+        {260, 235},  // มุมซ้ายบน
+        {300, 450},  // ซ้ายกลาง
+        {330, 585},  // ซ้ายล่าง
+        {800, 300},  // ขวากลางบน
+        {800, 470},  // ขวากลางล่าง
+    };
+    private static final int[] TABLE_BOX = {700, 285}; // กล่องบนโต๊ะ (โต๊ะแถวบนขวา)
+
+    private void setupBoxes() { 
+        java.awt.image.BufferedImage src;
+        try {
+            src = javax.imageio.ImageIO.read(getClass().getResource("/images/map1/boxmap1.png"));
+        } catch (java.io.IOException ex) {
+            throw new java.io.UncheckedIOException(ex);
+        }
+        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
+                BOX_SIZE, BOX_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        java.awt.Graphics2D g = img.createGraphics();
+        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.drawImage(src, 0, 0, BOX_SIZE, BOX_SIZE, null);
+        g.dispose();
+
+        java.util.List<int[]> all = new java.util.ArrayList<>(java.util.Arrays.asList(FLOOR_BOXES));
+        all.add(TABLE_BOX);
+        for (int[] p : all) {
+            add(new javax.swing.JLabel(new javax.swing.ImageIcon(img)),
+                    new org.netbeans.lib.awtextra.AbsoluteConstraints(p[0], p[1], BOX_SIZE, BOX_SIZE), 0);
+        }
     }
 
     private static final int PLAYER_SIZE = 60;
@@ -69,6 +104,10 @@ public class GameMap1 extends javax.swing.JPanel {
             for (int ty : new int[] {300, 390, 480}) {
                 area.subtract(rect(tx, ty, 60, 60));
             }
+        }
+        // กล่องบนพื้น เดินทะลุไม่ได้ (กล่องบนโต๊ะอยู่ในพื้นที่ที่ห้ามเดินอยู่แล้ว)
+        for (int[] p : FLOOR_BOXES) {
+            area.subtract(rect(p[0], p[1], BOX_SIZE, BOX_SIZE));
         }
         return area;
     }
@@ -228,8 +267,8 @@ public class GameMap1 extends javax.swing.JPanel {
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
         dialog.add(new com.mycompany.puzzle.PuzzleStation(dialog::dispose));
-        dialog.pack();
-        dialog.setLocationRelativeTo(this);
+        // เต็มจอ: ใช้ขนาดหน้าจอที่หน้าต่างเกมอยู่
+        dialog.setBounds(getGraphicsConfiguration().getBounds());
         dialog.setVisible(true);
         heldKeys.clear();
     }

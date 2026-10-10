@@ -26,7 +26,7 @@ public class Main {
             cardLayout = new CardLayout();
             cards = new JPanel(cardLayout);
 
-            cards.add(new LoadingScreen(), "loading");
+            //cards.add(new LoadingScreen(), "loading");
             cards.add(new MainMenuPanelForm(), "mainmenu");
             cards.add(new Avatar(), "avatar");
             cards.add(new GameMap1(), "map1");
