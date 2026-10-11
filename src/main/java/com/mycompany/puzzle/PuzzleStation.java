@@ -63,6 +63,10 @@ public class PuzzleStation extends JPanel implements KeyListener {
 
     private JButton closeButton;
 
+    public boolean isComplete() {
+        return complete;
+    }
+
     // ขนาดและตำแหน่งที่ย่อ/ขยายเขาวงกตให้พอดีจอ (คงสัดส่วน)
     private double scale() {
         return Math.min(getWidth() / (double) MazeMap.WIDTH,
