@@ -30,6 +30,7 @@ public class Main {
             cards.add(new MainMenuPanelForm(), "mainmenu");
             cards.add(new Avatar(), "avatar");
             cards.add(new GameMap1(), "map1");
+            cards.add(new GameMap2(), "map2");
 
             frame.add(cards);
             frame.pack();

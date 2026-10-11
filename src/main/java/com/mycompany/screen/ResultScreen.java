@@ -26,19 +26,45 @@ public class ResultScreen extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
+        btnred = new javax.swing.JLabel();
+        btngreen = new javax.swing.JLabel();
+        fram = new javax.swing.JLabel();
+        map = new javax.swing.JLabel();
+
+        setMinimumSize(new java.awt.Dimension(1280, 720));
+        setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        btnred.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/buttonred.png"))); // NOI18N
+        add(btnred, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 500, 210, 70));
+
+        btngreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/buttongreen.png"))); // NOI18N
+        add(btngreen, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 500, 210, 70));
+
+        fram.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/resultscreen/result_frame.png"))); // NOI18N
+        fram.setMinimumSize(new java.awt.Dimension(1191, 688));
+        add(fram, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 90, 850, 480));
+
+        map.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/resultscreen/mapresult.png"))); // NOI18N
+        add(map, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1280, 720));
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel btngreen;
+    private javax.swing.JLabel btnred;
+    private javax.swing.JLabel fram;
+    private javax.swing.JLabel map;
     // End of variables declaration//GEN-END:variables
+
+    public static void main(String[] args) {
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        javax.swing.JFrame frame = new javax.swing.JFrame("Test ResultScreen");
+        frame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+        frame.add(new ResultScreen());
+        frame.setSize(1280, 720);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    });
+}
+
 }

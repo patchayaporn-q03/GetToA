@@ -49,10 +49,14 @@ public class GameMap1 extends javax.swing.JPanel {
         java.util.List<int[]> all = new java.util.ArrayList<>(java.util.Arrays.asList(FLOOR_BOXES));
         all.add(TABLE_BOX);
         for (int[] p : all) {
-            add(new javax.swing.JLabel(new javax.swing.ImageIcon(img)),
-                    new org.netbeans.lib.awtextra.AbsoluteConstraints(p[0], p[1], BOX_SIZE, BOX_SIZE), 0);
+            javax.swing.JLabel box = new javax.swing.JLabel(new javax.swing.ImageIcon(img));
+            boxLabels.add(box);
+            add(box, new org.netbeans.lib.awtextra.AbsoluteConstraints(p[0], p[1], BOX_SIZE, BOX_SIZE), 0);
         }
     }
+
+    private boolean doorOpen = false;
+    private final java.util.List<javax.swing.JLabel> boxLabels = new java.util.ArrayList<>();
 
     private static final int PLAYER_SIZE = 60;
     private static final int PLAYER_SPEED = 4;
@@ -73,9 +77,9 @@ public class GameMap1 extends javax.swing.JPanel {
     private static final int HIT_H = 16;
 
     //พื้นที่เดินได้ = พื้นไม้ + โถงกระเบื้องขวา + ช่องเชื่อม แล้วหักสิ่งกีดขวางออก
-    private final java.awt.geom.Area walkable = buildWalkableArea();
+    private java.awt.geom.Area walkable = buildWalkableArea(true);
 
-    private static java.awt.geom.Area buildWalkableArea() {
+    private static java.awt.geom.Area buildWalkableArea(boolean withBoxes) {
         java.awt.geom.Area area = new java.awt.geom.Area();
         //พื้นไม้ห้องเรียน
         area.add(rect(195, 215, 700, 417));
@@ -106,8 +110,10 @@ public class GameMap1 extends javax.swing.JPanel {
             }
         }
         // กล่องบนพื้น เดินทะลุไม่ได้ (กล่องบนโต๊ะอยู่ในพื้นที่ที่ห้ามเดินอยู่แล้ว)
-        for (int[] p : FLOOR_BOXES) {
-            area.subtract(rect(p[0], p[1], BOX_SIZE, BOX_SIZE));
+        if (withBoxes) {
+            for (int[] p : FLOOR_BOXES) {
+                area.subtract(rect(p[0], p[1], BOX_SIZE, BOX_SIZE));
+            }
         }
         return area;
     }
@@ -242,6 +248,13 @@ public class GameMap1 extends javax.swing.JPanel {
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
             prompt.setVisible(isNearBook());
+
+            // เดินถึงประตู (ที่เปิดหลังผ่าน puzzle) แล้วย้ายไป GameMap2
+            if (doorOpen && y + HIT_Y <= 160) {
+                heldKeys.clear();
+                moveTimer.stop();
+                Main.switchTo("map2");
+            }
         });
         prompt.setVisible(isNearBook());
     }
@@ -266,11 +279,31 @@ public class GameMap1 extends javax.swing.JPanel {
                 javax.swing.SwingUtilities.getWindowAncestor(this), "Puzzle Station",
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
-        dialog.add(new com.mycompany.puzzle.PuzzleStation(dialog::dispose));
+        com.mycompany.puzzle.PuzzleStation station =
+                new com.mycompany.puzzle.PuzzleStation(dialog::dispose);
+        dialog.add(station);
         // เต็มจอ: ใช้ขนาดหน้าจอที่หน้าต่างเกมอยู่
         dialog.setBounds(getGraphicsConfiguration().getBounds());
         dialog.setVisible(true);
         heldKeys.clear();
+        // ผู้เล่นปิด popup หลังเล่นจบแล้ว ค่อยเปลี่ยนแมพ
+        if (station.isComplete()) {
+            applyPassedMap();
+        }
+    }
+
+    //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ และเอากล่องทั้งหมดออก
+    private void applyPassedMap() {
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/map1/map1-pass.png")));
+        for (javax.swing.JLabel box : boxLabels) {
+            remove(box);
+        }
+        boxLabels.clear();
+        walkable = buildWalkableArea(false);
+        walkable.add(rect(955, 130, 100, 100)); // เปิดทางเดินไปที่ประตู
+        doorOpen = true;
+        revalidate();
+        repaint();
     }
 
 
