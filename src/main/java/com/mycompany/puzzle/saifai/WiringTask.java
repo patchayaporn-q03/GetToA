@@ -1,3 +1,4 @@
+package com.mycompany.puzzle.saifai;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
