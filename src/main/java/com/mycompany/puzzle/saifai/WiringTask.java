@@ -57,7 +57,25 @@ public class WiringTask extends JPanel {
     private static double puzzleTime;
     private static int puzzleScore;
 
+    private static boolean played = false;
+    private final Runnable onFinish;
+
     public WiringTask() {
+        this(null);
+    }
+
+    // onFinish ถูกเรียกหลังต่อสายครบและโชว์หน้าสำเร็จครู่หนึ่ง หรือเมื่อกด Esc (ใช้ปิด popup)
+    public WiringTask(Runnable onFinish) {
+        this.onFinish = onFinish;
+        if (onFinish != null) {
+            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+            getActionMap().put("close", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    gameTimer.stop();
+                    onFinish.run();
+                }
+            });
+        }
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(new Color(25, 30, 45));
 
@@ -113,6 +131,11 @@ public class WiringTask extends JPanel {
                         won = true;
                         gameTimer.stop();
                         puzzleComplete(seconds);
+                        if (WiringTask.this.onFinish != null) {
+                            Timer t = new Timer(2500, ev -> WiringTask.this.onFinish.run());
+                            t.setRepeats(false);
+                            t.start();
+                        }
                     }
                 }
 
@@ -146,6 +169,7 @@ public class WiringTask extends JPanel {
     // คำนวณคะแนนเมื่อเล่นจบ
     public static void puzzleComplete(double time) {
         puzzleTime = time;
+        played = true;
 
         if (time <= 20) {
             puzzleScore = 70;
@@ -167,7 +191,7 @@ public class WiringTask extends JPanel {
 
     // บันทึกวัน เวลา และคะแนนลง CSV
     private static void saveToCSV(double time, int score) {
-        String fileName = "wiringtask.csv";
+        String fileName = com.mycompany.data.CharacterData.DIR + "/wiringtask.csv";
         File file = new File(fileName);
 
         try {
@@ -200,6 +224,10 @@ public class WiringTask extends JPanel {
             System.out.println("Cannot save CSV file!");
             e.printStackTrace();
         }
+    }
+
+    public static boolean isPlayed() {
+        return played;
     }
 
     public static double getPuzzleTime() {
