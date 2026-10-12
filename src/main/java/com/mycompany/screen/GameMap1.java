@@ -4,6 +4,9 @@
  */
 package com.mycompany.screen;
 
+import com.mycompany.grade.GradeBox;
+import com.mycompany.grade.GradeManager;
+
 /**
  *
  * @author lenovo
@@ -15,48 +18,90 @@ public class GameMap1 extends javax.swing.JPanel {
      */
     public GameMap1() {
         initComponents();
+        walkable = buildWalkableArea(true);
         setupBoxes();
         setupPlayer();
         setupBackButton();
     }
 
     //กล่องสมบัติ 6 กล่อง วางตายตัว: 5 กล่องบนพื้นที่เดินได้ + 1 กล่องบนโต๊ะ (โต๊ะแถวบนขวา)
-    private static final int BOX_SIZE = 40;
-    private static final int[][] FLOOR_BOXES = {
-        {260, 235},  // มุมซ้ายบน
-        {300, 450},  // ซ้ายกลาง
-        {330, 585},  // ซ้ายล่าง
-        {800, 300},  // ขวากลางบน
-        {800, 470},  // ขวากลางล่าง
-    };
-    private static final int[] TABLE_BOX = {700, 285}; // กล่องบนโต๊ะ (โต๊ะแถวบนขวา)
+    // ระบบกล่องใช้ GradeBox (ตำแหน่ง รูป คะแนน และการเปิดกล่องอยู่ในนั้น)
+    private final GradeManager gradeManager = GradeManager.getInstance();
+    private final GradeBox gradeBox = new GradeBox(gradeManager);
+    private final int BOX_SIZE = gradeBox.getBoxSize();
 
-    private void setupBoxes() { 
-        java.awt.image.BufferedImage src;
+    // ชิ้นส่วนที่ GradeBox เพิ่มลงแมพ (กล่องและป้าย) เก็บไว้เพื่อลบออกหลังผ่าน puzzle
+    private final java.util.List<java.awt.Component> boxLabels = new java.util.ArrayList<>();
+    private boolean addingBoxes = false;
+
+    private void setupBoxes() {
+        addingBoxes = true;
         try {
-            src = javax.imageio.ImageIO.read(getClass().getResource("/images/map1/boxmap1.png"));
-        } catch (java.io.IOException ex) {
-            throw new java.io.UncheckedIOException(ex);
+            gradeBox.setupBoxes(this);
+        } finally {
+            addingBoxes = false;
         }
-        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
-                BOX_SIZE, BOX_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g = img.createGraphics();
-        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
-                java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g.drawImage(src, 0, 0, BOX_SIZE, BOX_SIZE, null);
-        g.dispose();
+    }
 
-        java.util.List<int[]> all = new java.util.ArrayList<>(java.util.Arrays.asList(FLOOR_BOXES));
-        all.add(TABLE_BOX);
-        for (int[] p : all) {
-            javax.swing.JLabel box = new javax.swing.JLabel(new javax.swing.ImageIcon(img));
-            boxLabels.add(box);
-            add(box, new org.netbeans.lib.awtextra.AbsoluteConstraints(p[0], p[1], BOX_SIZE, BOX_SIZE), 0);
+    // GradeBox เรียก add(component) โดยไม่มี constraints แต่แมพนี้ใช้ AbsoluteLayout
+    // จึงแปลง bounds ของ component เป็น AbsoluteConstraints และวางไว้หน้าพื้นหลัง
+    @Override
+    protected void addImpl(java.awt.Component comp, Object constraints, int index) {
+        if (addingBoxes && constraints == null) {
+            java.awt.Rectangle r = comp.getBounds();
+            constraints = new org.netbeans.lib.awtextra.AbsoluteConstraints(r.x, r.y, r.width, r.height);
+            index = 0;
+            boxLabels.add(comp);
+        }
+        super.addImpl(comp, constraints, index);
+    }
+
+    // กล่องที่เปิดแล้ว (index ตามลำดับตำแหน่งใน GradeBox)
+    private final java.util.Set<Integer> openedIndexes = new java.util.HashSet<>();
+
+    // หากล่องที่ยังไม่เปิดและใกล้ผู้เล่นที่สุด ใช้หลักเดียวกับ GradeBox เพื่อให้ตรงกับกล่องที่ GradeBox เปิดจริง
+    private int nearestClosedBoxIndex() {
+        int[][] pos = gradeBox.getAllBoxPositions();
+        int px = player.getX() + player.getWidth() / 2;
+        int py = player.getY() + player.getHeight() / 2;
+        int best = -1;
+        double bestDist = Double.MAX_VALUE;
+        for (int i = 0; i < pos.length; i++) {
+            if (openedIndexes.contains(i)) {
+                continue;
+            }
+            double d = Math.hypot(px - (pos[i][0] + BOX_SIZE / 2), py - (pos[i][1] + BOX_SIZE / 2));
+            if (d < bestDist) {
+                bestDist = d;
+                best = i;
+            }
+        }
+        return bestDist <= GradeBox.INTERACT_DISTANCE ? best : -1;
+    }
+
+    // เปลี่ยนรูปกล่องที่เปิดแล้วให้เป็นกล่องใสๆ
+    private void makeBoxTransparent(int index) {
+        int[] p = gradeBox.getAllBoxPositions()[index];
+        for (java.awt.Component c : boxLabels) {
+            if (c instanceof javax.swing.JLabel label
+                    && label.getIcon() != null
+                    && label.getX() == p[0] && label.getY() == p[1]
+                    && label.getWidth() == BOX_SIZE && label.getHeight() == BOX_SIZE) {
+                javax.swing.Icon icon = label.getIcon();
+                java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
+                        icon.getIconWidth(), icon.getIconHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                java.awt.Graphics2D g = img.createGraphics();
+                g.setComposite(java.awt.AlphaComposite.SrcOver.derive(0.3f));
+                icon.paintIcon(label, g, 0, 0);
+                g.dispose();
+                label.setIcon(new javax.swing.ImageIcon(img));
+                repaint();
+                return;
+            }
         }
     }
 
     private boolean doorOpen = false;
-    private final java.util.List<javax.swing.JLabel> boxLabels = new java.util.ArrayList<>();
 
     private static final int PLAYER_SIZE = 60;
     private static final int PLAYER_SPEED = 4;
@@ -77,9 +122,9 @@ public class GameMap1 extends javax.swing.JPanel {
     private static final int HIT_H = 16;
 
     //พื้นที่เดินได้ = พื้นไม้ + โถงกระเบื้องขวา + ช่องเชื่อม แล้วหักสิ่งกีดขวางออก
-    private java.awt.geom.Area walkable = buildWalkableArea(true);
+    private java.awt.geom.Area walkable;
 
-    private static java.awt.geom.Area buildWalkableArea(boolean withBoxes) {
+    private java.awt.geom.Area buildWalkableArea(boolean withBoxes) {
         java.awt.geom.Area area = new java.awt.geom.Area();
         //พื้นไม้ห้องเรียน
         area.add(rect(195, 215, 700, 417));
@@ -111,7 +156,7 @@ public class GameMap1 extends javax.swing.JPanel {
         }
         // กล่องบนพื้น เดินทะลุไม่ได้ (กล่องบนโต๊ะอยู่ในพื้นที่ที่ห้ามเดินอยู่แล้ว)
         if (withBoxes) {
-            for (int[] p : FLOOR_BOXES) {
+            for (int[] p : gradeBox.getFloorBoxPositions()) {
                 area.subtract(rect(p[0], p[1], BOX_SIZE, BOX_SIZE));
             }
         }
@@ -200,8 +245,18 @@ public class GameMap1 extends javax.swing.JPanel {
         act.put("interact", new javax.swing.AbstractAction() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (isNearBook()) {
+                if (!doorOpen && isNearBook()) {
                     openPuzzleStation();
+                } else {
+                    heldKeys.clear();
+                    moveTimer.stop();
+                    int target = nearestClosedBoxIndex();
+                    if (gradeBox.openNearestBox(GameMap1.this, player) && target >= 0) {
+                        openedIndexes.add(target);
+                        makeBoxTransparent(target);
+                    }
+                    heldKeys.clear();
+                    gradeBox.updatePrompts(player);
                 }
             }
         });
@@ -247,7 +302,8 @@ public class GameMap1 extends javax.swing.JPanel {
 
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
-            prompt.setVisible(isNearBook());
+            prompt.setVisible(!doorOpen && isNearBook());
+            gradeBox.updatePrompts(player);
 
             // เดินถึงประตู (ที่เปิดหลังผ่าน puzzle) แล้วย้ายไป GameMap2
             if (doorOpen && y + HIT_Y <= 160) {
@@ -256,7 +312,8 @@ public class GameMap1 extends javax.swing.JPanel {
                 Main.switchTo("map2");
             }
         });
-        prompt.setVisible(isNearBook());
+        prompt.setVisible(!doorOpen && isNearBook());
+        gradeBox.updatePrompts(player);
     }
 
     private static final int INTERACT_DISTANCE = 70;
@@ -292,14 +349,9 @@ public class GameMap1 extends javax.swing.JPanel {
         }
     }
 
-    //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ และเอากล่องทั้งหมดออก
+    //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ กล่องยังอยู่ให้เปิดต่อได้จนกว่าจะออกประตู
     private void applyPassedMap() {
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/map1/map1-pass.png")));
-        for (javax.swing.JLabel box : boxLabels) {
-            remove(box);
-        }
-        boxLabels.clear();
-        walkable = buildWalkableArea(false);
         walkable.add(rect(955, 130, 100, 100)); // เปิดทางเดินไปที่ประตู
         doorOpen = true;
         revalidate();
