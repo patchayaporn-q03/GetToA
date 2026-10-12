@@ -1,0 +1,172 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ */
+package com.mycompany.screen;
+import com.mycompany.data.SaveData;
+
+/**
+ *
+ * @author lenovo
+ */
+public class ResultScreen extends javax.swing.JPanel {
+
+    /**
+     * Creates new form ResultScreen
+     */
+    public ResultScreen() {
+        initComponents();
+        setupResultLabels();
+        setupButtons();
+        // CardLayout เรียก setVisible เมื่อสลับมาหน้านี้ จึงอัปเดตคะแนนใหม่ทุกครั้งที่เปิด
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refresh();
+                // บันทึกลง CSV หนึ่งครั้งต่อการเปิดหน้านี้ (ไม่บันทึกตอนสร้างหน้า)
+                com.mycompany.grade.GradeManager.getInstance().saveResult();
+            }
+        });
+        refresh();
+    }
+
+    private static final java.awt.Color INK = new java.awt.Color(0x5A3A1A);
+
+    private javax.swing.JLabel gradeLabel;
+    private javax.swing.JLabel puzzleLine;
+    private javax.swing.JLabel boxLine;
+    private javax.swing.JLabel totalLine;
+
+    private javax.swing.JLabel addLabel(String text, int x, int y, int w, int h,
+            int size, int align, java.awt.Color color) {
+        javax.swing.JLabel label = new javax.swing.JLabel(text, align);
+        label.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, size));
+        label.setForeground(color);
+        // index 0 = อยู่หน้ากรอบและพื้นหลัง
+        add(label, new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, w, h), 0);
+        return label;
+    }
+
+    private void setupResultLabels() {
+        int center = javax.swing.SwingConstants.CENTER;
+        int left = javax.swing.SwingConstants.LEFT;
+        java.awt.Color gold = new java.awt.Color(0xFFE08A);
+
+        addLabel("สรุปผลเกม", 430, 125, 430, 60, 34, center, gold);
+        addLabel("เกรดที่ได้", 290, 215, 260, 36, 24, center, INK);
+        gradeLabel = addLabel("-", 290, 250, 260, 200, 150, center, INK);
+
+        puzzleLine = addLabel("", 600, 240, 400, 40, 26, left, INK);
+        boxLine = addLabel("", 600, 300, 400, 40, 26, left, INK);
+        totalLine = addLabel("", 600, 380, 400, 50, 32, left, new java.awt.Color(0x8A5A00));
+        // เส้นคั่นก่อนบรรทัดคะแนนรวม
+        javax.swing.JSeparator line = new javax.swing.JSeparator();
+        line.setForeground(INK);
+        add(line, new org.netbeans.lib.awtextra.AbsoluteConstraints(600, 360, 400, 2), 0);
+    }
+
+    // ปลายทางของปุ่มเขียว ตั้งได้ด้วย setNext() เช่นหลังจบแมพ 1 ให้ไปแมพ 2
+    private String nextCard = "mainmenu";
+    private String nextText = "หน้าหลัก";
+
+    public void setNext(String card, String text) {
+        nextCard = card;
+        nextText = text;
+        btngreen.setText(text);
+    }
+
+    // ปุ่มเขียว = ไปต่อ (ค่าเริ่มต้นกลับหน้าหลัก), ปุ่มแดง = ออกจากเกม
+    private void setupButtons() {
+        setupButton(btngreen, nextText, () -> GameFrame.switchTo(nextCard));
+        setupButton(btnred, "ออกจากเกม", () -> System.exit(0));
+    }
+
+    private void setupButton(javax.swing.JLabel button, String text, Runnable action) {
+        button.setText(text);
+        button.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, 24));
+        button.setForeground(java.awt.Color.WHITE);
+        button.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        button.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);
+        button.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                action.run();
+            }
+        });
+    }
+
+    // ดึงคะแนนล่าสุดจาก GameResult มาแสดง
+    public void refresh() {
+        com.mycompany.grade.GameResult result = com.mycompany.grade.GameResult.current();
+        gradeLabel.setText(result.getGrade());
+        gradeLabel.setForeground(gradeColor(result.getGrade()));
+        puzzleLine.setText("คะแนนปริศนา  " + result.getPuzzleScore()
+                + " / " + com.mycompany.grade.GameResult.MAX_PUZZLE_SCORE);
+        boxLine.setText("คะแนนกล่อง  " + result.getBoxScore()
+                + " / " + com.mycompany.grade.GameResult.MAX_BOX_SCORE);
+        totalLine.setText("คะแนนสะสม  " + result.getTotalScore()
+                + " / " + com.mycompany.grade.GameResult.MAX_TOTAL_SCORE);
+        repaint();
+    }
+
+    private static java.awt.Color gradeColor(String grade) {
+        switch (grade) {
+            case "A": return new java.awt.Color(0x2E8B3D);
+            case "B": return new java.awt.Color(0x2F7FB5);
+            case "C": return new java.awt.Color(0xD98A00);
+            case "D": return new java.awt.Color(0xD2601A);
+            default: return new java.awt.Color(0xC62828);
+        }
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        btnred = new javax.swing.JLabel();
+        btngreen = new javax.swing.JLabel();
+        fram = new javax.swing.JLabel();
+        map = new javax.swing.JLabel();
+
+        setMinimumSize(new java.awt.Dimension(1280, 720));
+        setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        btnred.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/buttonred.png"))); // NOI18N
+        add(btnred, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 500, 210, 70));
+
+        btngreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/buttongreen.png"))); // NOI18N
+        add(btngreen, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 500, 210, 70));
+
+        fram.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/resultscreen/result_frame.png"))); // NOI18N
+        fram.setMinimumSize(new java.awt.Dimension(1191, 688));
+        add(fram, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 90, 850, 480));
+
+        map.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/resultscreen/mapresult.png"))); // NOI18N
+        add(map, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1280, 720));
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel btngreen;
+    private javax.swing.JLabel btnred;
+    private javax.swing.JLabel fram;
+    private javax.swing.JLabel map;
+    // End of variables declaration//GEN-END:variables
+
+    public static void main(String[] args) {
+    javax.swing.SwingUtilities.invokeLater(() -> {
+        javax.swing.JFrame frame = new javax.swing.JFrame("Test ResultScreen");
+        frame.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+        frame.add(new ResultScreen());
+        frame.setSize(1280, 720);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    });
+}
+}
