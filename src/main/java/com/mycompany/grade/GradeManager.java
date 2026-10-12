@@ -1,45 +1,52 @@
+
 package com.mycompany.grade;
+
 import com.mycompany.data.SaveData;
 
 public class GradeManager {
 
+    // คะแนนกล่องและคะแนนปริศนา
     private int boxScore;
     private int puzzleScore;
 
+    // ตัวจัดการคะแนนกลางของเกม ใช้ร่วมกันทุกแมพและทุกหน้าจอ
+    // เรียกใช้: GradeManager.getInstance()
+    private static final GradeManager INSTANCE = new GradeManager();
+
+    public static GradeManager getInstance() {
+        return INSTANCE;
+    }
+
+    // ยังสร้าง instance แยกได้ เช่นใช้ทดสอบ หรือแมพที่ต้องการคะแนนของตัวเอง
     public GradeManager() {
         boxScore = 0;
         puzzleScore = 0;
     }
 
-    /**
-     * รับคะแนนจาก GradeBox
-     * @param score คะแนนที่ได้จากการเปิดกล่อง
-     * กำหนดคะแนน Puzzle
-     * @param score คะแนนที่ได้จาก Puzzle
-     * @param boxScore คะแนนจากกล่อง
-     * @param puzzleScore คะแนนจาก puzzle
-     * @param getTotalScore คะแนนรวม
-     * @param SaveData บันทึกผล
-     */
+    // ล้างคะแนนทั้งหมด ใช้ตอนเริ่มเกมใหม่
+    public void reset() {
+        boxScore = 0;
+        puzzleScore = 0;
+    }
 
+    // รับคะแนนกล่องแต่ละครั้งมาสะสม
+    // เก็บคะแนนดิบไว้ เพื่อให้คะแนนกับดัก -10 มีผลถูกต้อง
+    public void addBoxScore(int score) {
+        boxScore += score;
+    }
+
+    // ใช้กำหนดคะแนนกล่องโดยตรง หากจำเป็น
     public void setBoxScore(int score) {
         boxScore = score;
     }
 
-    public void addBoxScore(int score) {
-        boxScore += score;
-
-        if (boxScore > 30) {
-            boxScore = 30;
-        }
+    // คะแนนกล่องที่ใช้แสดงและคำนวณจริง อยู่ระหว่าง 0 ถึง 30
+    public int getBoxScore() {
+        return Math.max(0, Math.min(boxScore, 30));
     }
 
     public void setPuzzleScore(int score) {
-        puzzleScore = score;
-    }
-
-    public int getBoxScore() {
-        return boxScore;
+        puzzleScore = Math.max(0, Math.min(score, 70));
     }
 
     public int getPuzzleScore() {
@@ -47,11 +54,10 @@ public class GradeManager {
     }
 
     public int getTotalScore() {
-        return boxScore + puzzleScore;
+        return getBoxScore() + getPuzzleScore();
     }
 
     public String getGrade() {
-
         int total = getTotalScore();
 
         if (total >= 80) {
@@ -65,17 +71,15 @@ public class GradeManager {
         } else {
             return "F";
         }
- 
     }
 
+    // บันทึกผลคะแนนสุดท้าย
     public void saveResult() {
-
         SaveData.savePlayerScore(
-            getBoxScore(),
-            getPuzzleScore(),
-            getTotalScore(),
-            getGrade()
+                getBoxScore(),
+                getPuzzleScore(),
+                getTotalScore(),
+                getGrade()
         );
     }
 }
-
