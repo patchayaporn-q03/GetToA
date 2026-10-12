@@ -22,7 +22,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
-        <exec.mainClass>com.mycompany.screen.Main</exec.mainClass>
+        <exec.mainClass>com.mycompany.screen.GameFrame</exec.mainClass>
     </properties>
     <build>
         <resources>
