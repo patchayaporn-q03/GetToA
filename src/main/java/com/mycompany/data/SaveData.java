@@ -7,7 +7,7 @@ public class SaveData {
     // บันทึกผลคะแนนของผู้เล่น
     public static void savePlayerScore(int boxScore,int puzzleScore,int totalScore,String grade) {
 
-        try (FileWriter writer = new FileWriter("player_save.csv", true)) {
+        try (FileWriter writer = new FileWriter(CharacterData.DIR + "/player_save.csv", true)) {
 
             writer.write(
                 boxScore + "," +

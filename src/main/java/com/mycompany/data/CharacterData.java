@@ -17,7 +17,7 @@ public class CharacterData {
 
     // ถ้ารันจากโฟลเดอร์โปรเจกต์ จะเก็บไว้ในโฟลเดอร์ data ของ mycompany
     // ถ้าไม่มีโฟลเดอร์นั้น (เช่น รันจาก .jar) จะเก็บในโฟลเดอร์ Data ข้างโปรแกรมแทน
-    private static final String DIR = new java.io.File("src/main/java/com/mycompany/data").isDirectory()
+    public static final String DIR = new java.io.File("src/main/java/com/mycompany/data").isDirectory()
             ? "src/main/java/com/mycompany/data" : "Data";
 
     public static final String FILE = DIR + "/character_stats.csv";
@@ -107,6 +107,30 @@ public class CharacterData {
         }
     }
 
+    // รูปตัวละครที่เลือกล่าสุด ย่อเป็น size x size หรือ null ถ้ายังไม่เคยเลือก/หารูปไม่เจอ
+    public static javax.swing.ImageIcon loadSelectedIcon(int size) {
+        String[] s = loadSettings();
+        if (s == null) {
+            return null;
+        }
+        try {
+            int id = Integer.parseInt(s[1].trim());
+            for (CharacterData c : load(s[0].trim())) {
+                if (c.getId() == id) {
+                    java.net.URL url = CharacterData.class.getResource("/images/avatar/standy/" + c.getImage() + ".png");
+                    if (url == null) {
+                        return null;
+                    }
+                    java.awt.Image img = new javax.swing.ImageIcon(url).getImage();
+                    return new javax.swing.ImageIcon(img.getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
+                }
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     // อ่านตัวละครของเพศที่ต้องการ (เรียงตาม id)
     public static List<CharacterData> load(String gender) {
         List<CharacterData> list = new ArrayList<>();
@@ -129,34 +153,5 @@ public class CharacterData {
             e.printStackTrace();
         }
         return list;
-    }
-
-    // ตัวละครที่ผู้เล่นเลือกล่าสุดใน settings.csv ถ้ายังไม่เคยเลือกคืนตัวแรกของเพศหญิง (null ถ้าไม่มีข้อมูลเลย)
-    public static CharacterData loadSelected() {
-        String[] saved = loadSettings();
-        List<CharacterData> list = load(saved != null ? saved[0] : "female");
-        if (saved != null) {
-            for (CharacterData c : list) {
-                if (String.valueOf(c.getId()).equals(saved[1])) {
-                    return c;
-                }
-            }
-        }
-        List<CharacterData> girls = load("female");
-        return girls.isEmpty() ? null : girls.get(0);
-    }
-
-    // รูปตัวละครที่เลือก ย่อเป็น size x size ใช้เป็นรูปผู้เล่นในแมพ (null ถ้าหารูปไม่เจอ)
-    public static javax.swing.ImageIcon loadSelectedIcon(int size) {
-        CharacterData c = loadSelected();
-        if (c == null) {
-            return null;
-        }
-        java.net.URL url = CharacterData.class.getResource("/images/avatar/standy/" + c.getImage() + ".png");
-        if (url == null) {
-            return null;
-        }
-        java.awt.Image img = new javax.swing.ImageIcon(url).getImage();
-        return new javax.swing.ImageIcon(img.getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
     }
 }
