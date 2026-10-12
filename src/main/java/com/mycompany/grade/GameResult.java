@@ -27,7 +27,12 @@ public class GameResult {
     // รวมคะแนนจากทุกแมพ ณ ตอนนี้ แล้วคำนวณเกรดด้วย GradeManager
     public static GameResult current() {
         GradeManager manager = GradeManager.getInstance();
-        manager.setPuzzleScore(PuzzleScore.getPuzzleScore());
+        int puzzle = PuzzleScore.getPuzzleScore();
+        // แมพ 2 (wiring) เล่นแล้ว เฉลี่ยกับคะแนนเขาวงกตแมพ 1
+        if (com.mycompany.puzzle.saifai.WiringTask.isPlayed()) {
+            puzzle = Math.round((puzzle + com.mycompany.puzzle.saifai.WiringTask.getPuzzleScore()) / 2f);
+        }
+        manager.setPuzzleScore(puzzle);
         return new GameResult(
                 manager.getPuzzleScore(),
                 manager.getBoxScore(),
