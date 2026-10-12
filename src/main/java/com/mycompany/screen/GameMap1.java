@@ -197,7 +197,7 @@ public class GameMap1 extends javax.swing.JPanel {
         back.addActionListener(e -> {
             heldKeys.clear();
             moveTimer.stop();
-            GameFrame.switchTo("mainmenu");
+            Main.switchTo("mainmenu");
         });
         add(back, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 16, w, h), 0);
     }
@@ -247,7 +247,7 @@ public class GameMap1 extends javax.swing.JPanel {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 if (!doorOpen && isNearBook()) {
                     openPuzzleStation();
-                } else {
+                } else if (!doorOpen) {
                     heldKeys.clear();
                     moveTimer.stop();
                     int target = nearestClosedBoxIndex();
@@ -309,7 +309,7 @@ public class GameMap1 extends javax.swing.JPanel {
             if (doorOpen && y + HIT_Y <= 160) {
                 heldKeys.clear();
                 moveTimer.stop();
-                GameFrame.switchTo("map2");
+                Main.switchTo("map2");
             }
         });
         prompt.setVisible(!doorOpen && isNearBook());
@@ -346,14 +346,28 @@ public class GameMap1 extends javax.swing.JPanel {
         // ผู้เล่นปิด popup หลังเล่นจบแล้ว ค่อยเปลี่ยนแมพ
         if (station.isComplete()) {
             applyPassedMap();
+            // แสดงหน้าสรุปผลก่อน กดปุ่มแล้วกลับมาที่แมพนี้ซึ่งประตูเปิดแล้ว
+            Main.showResult("map1", "ไปแมพ 2");
         }
     }
 
-    //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ กล่องยังอยู่ให้เปิดต่อได้จนกว่าจะออกประตู
+    // ประตูเปิดแล้ว กล่องและป้ายหายไปทั้งหมด เปิดกล่องอีกไม่ได้ และกล่องบนพื้นไม่กีดทางเดินอีก
+    private void removeBoxes() {
+        for (java.awt.Component c : boxLabels) {
+            remove(c);
+        }
+        boxLabels.clear();
+        for (int[] p : gradeBox.getFloorBoxPositions()) {
+            walkable.add(rect(p[0], p[1], BOX_SIZE, BOX_SIZE));
+        }
+    }
+
+    //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ และกล่องหายไป
     private void applyPassedMap() {
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/map1/map1-pass.png")));
         walkable.add(rect(955, 130, 100, 100)); // เปิดทางเดินไปที่ประตู
         doorOpen = true;
+        removeBoxes();
         revalidate();
         repaint();
     }

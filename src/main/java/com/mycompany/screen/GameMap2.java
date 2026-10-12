@@ -4,6 +4,9 @@
  */
 package com.mycompany.screen;
 
+import com.mycompany.grade.GradeBox;
+import com.mycompany.grade.GradeManager;
+
 /**
  *
  * @author lenovo
@@ -21,20 +24,41 @@ public class GameMap2 extends javax.swing.JPanel {
     }
 
     //กล่องสมบัติ วางตายตัว: กล่องบนพื้นที่เดินได้ + กล่องบนโต๊ะ
-    private static final int BOX_SIZE = 40;
-    private static final int[][] FLOOR_BOXES = {
+    // ระบบกล่องใช้ GradeBox (ต้องการ 6 ตำแหน่ง: 5 กล่องบนพื้น + 1 กล่องบนโต๊ะ)
+    private static final int[][] BOX_POSITIONS = {
         {220, 230},  // ซ้ายบน
         {230, 420},  // ซ้ายกลาง
         {520, 330},  // กลาง ระหว่างโต๊ะ
         {810, 260},  // ขวาบน
         {800, 480},  // ขวาล่าง
-    };
-    private static final int[][] TABLE_BOXES = {
         {630, 320},  // บนโต๊ะขวาบน
-        {400, 475},  // บนโต๊ะซ้ายล่าง
     };
+    private final GradeBox gradeBox = new GradeBox(GradeManager.getInstance(), BOX_POSITIONS);
+    private final int BOX_SIZE = gradeBox.getBoxSize();
+
+    private final java.util.List<java.awt.Component> boxLabels = new java.util.ArrayList<>();
+    private final java.util.Set<Integer> openedIndexes = new java.util.HashSet<>();
+    private boolean addingBoxes = false;
 
     private void setupBoxes() {
+        addingBoxes = true;
+        try {
+            gradeBox.setupBoxes(this);
+        } finally {
+            addingBoxes = false;
+        }
+        // GradeBox ใช้รูปกล่องของแมพ 1 จึงสลับเป็นรูปกล่องของแมพ 2
+        boxImage = loadBoxImage();
+        for (java.awt.Component c : boxLabels) {
+            if (c instanceof javax.swing.JLabel label && label.getIcon() != null) {
+                label.setIcon(new javax.swing.ImageIcon(boxImage));
+            }
+        }
+    }
+
+    private java.awt.image.BufferedImage boxImage;
+
+    private java.awt.image.BufferedImage loadBoxImage() {
         java.awt.image.BufferedImage src;
         try {
             src = javax.imageio.ImageIO.read(getClass().getResource("/images/map2/boxmap2.png"));
@@ -48,12 +72,59 @@ public class GameMap2 extends javax.swing.JPanel {
                 java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g.drawImage(src, 0, 0, BOX_SIZE, BOX_SIZE, null);
         g.dispose();
+        return img;
+    }
 
-        java.util.List<int[]> all = new java.util.ArrayList<>(java.util.Arrays.asList(FLOOR_BOXES));
-        all.addAll(java.util.Arrays.asList(TABLE_BOXES));
-        for (int[] p : all) {
-            add(new javax.swing.JLabel(new javax.swing.ImageIcon(img)),
-                    new org.netbeans.lib.awtextra.AbsoluteConstraints(p[0], p[1], BOX_SIZE, BOX_SIZE), 0);
+    // GradeBox เรียก add(component) โดยไม่มี constraints แต่แมพนี้ใช้ AbsoluteLayout
+    @Override
+    protected void addImpl(java.awt.Component comp, Object constraints, int index) {
+        if (addingBoxes && constraints == null) {
+            java.awt.Rectangle r = comp.getBounds();
+            constraints = new org.netbeans.lib.awtextra.AbsoluteConstraints(r.x, r.y, r.width, r.height);
+            index = 0;
+            boxLabels.add(comp);
+        }
+        super.addImpl(comp, constraints, index);
+    }
+
+    // หากล่องที่ยังไม่เปิดและใกล้ผู้เล่นที่สุด ใช้หลักเดียวกับ GradeBox
+    private int nearestClosedBoxIndex() {
+        int[][] pos = gradeBox.getAllBoxPositions();
+        int px = player.getX() + player.getWidth() / 2;
+        int py = player.getY() + player.getHeight() / 2;
+        int best = -1;
+        double bestDist = Double.MAX_VALUE;
+        for (int i = 0; i < pos.length; i++) {
+            if (openedIndexes.contains(i)) {
+                continue;
+            }
+            double d = Math.hypot(px - (pos[i][0] + BOX_SIZE / 2), py - (pos[i][1] + BOX_SIZE / 2));
+            if (d < bestDist) {
+                bestDist = d;
+                best = i;
+            }
+        }
+        return bestDist <= GradeBox.INTERACT_DISTANCE ? best : -1;
+    }
+
+    // เปลี่ยนรูปกล่องที่เปิดแล้วให้เป็นกล่องใสๆ
+    private void makeBoxTransparent(int index) {
+        int[] p = gradeBox.getAllBoxPositions()[index];
+        for (java.awt.Component c : boxLabels) {
+            if (c instanceof javax.swing.JLabel label
+                    && label.getIcon() != null
+                    && label.getX() == p[0] && label.getY() == p[1]
+                    && label.getWidth() == BOX_SIZE && label.getHeight() == BOX_SIZE) {
+                java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
+                        BOX_SIZE, BOX_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                java.awt.Graphics2D g = img.createGraphics();
+                g.setComposite(java.awt.AlphaComposite.SrcOver.derive(0.3f));
+                g.drawImage(boxImage, 0, 0, null);
+                g.dispose();
+                label.setIcon(new javax.swing.ImageIcon(img));
+                repaint();
+                return;
+            }
         }
     }
 
@@ -83,7 +154,7 @@ public class GameMap2 extends javax.swing.JPanel {
         back.addActionListener(e -> {
             heldKeys.clear();
             moveTimer.stop();
-            GameFrame.switchTo("mainmenu");
+            Main.switchTo("mainmenu");
         });
         add(back, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 16, w, h), 0);
     }
@@ -104,7 +175,7 @@ public class GameMap2 extends javax.swing.JPanel {
     //พื้นที่เดินได้ = พื้นไม้ + ทางเดินที่ประตู แล้วหักเคาน์เตอร์กับโต๊ะออก
     private final java.awt.geom.Area walkable = buildWalkableArea();
 
-    private static java.awt.geom.Area buildWalkableArea() {
+    private java.awt.geom.Area buildWalkableArea() {
         java.awt.geom.Area area = new java.awt.geom.Area();
         area.add(new java.awt.geom.Area(new java.awt.Rectangle(180, 190, 680, 390))); // พื้นไม้
         area.add(new java.awt.geom.Area(new java.awt.Rectangle(550, 580, 130, 90)));  // ทางเดินที่ประตู
@@ -114,7 +185,7 @@ public class GameMap2 extends javax.swing.JPanel {
         area.subtract(new java.awt.geom.Area(new java.awt.Rectangle(610, 300, 130, 90))); // โต๊ะขวาบน
         area.subtract(new java.awt.geom.Area(new java.awt.Rectangle(610, 450, 130, 90))); // โต๊ะขวาล่าง
         // กล่องบนพื้น เดินทะลุไม่ได้ (กล่องบนโต๊ะอยู่ในพื้นที่ที่ห้ามเดินอยู่แล้ว)
-        for (int[] p : FLOOR_BOXES) {
+        for (int[] p : gradeBox.getFloorBoxPositions()) {
             area.subtract(new java.awt.geom.Area(new java.awt.Rectangle(p[0], p[1], BOX_SIZE, BOX_SIZE)));
         }
         return area;
@@ -164,14 +235,21 @@ public class GameMap2 extends javax.swing.JPanel {
         act.put("interact", new javax.swing.AbstractAction() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
+                heldKeys.clear();
+                moveTimer.stop();
                 if (isNearPlate()) {
-                    heldKeys.clear();
-                    moveTimer.stop();
                     // TODO: เปลี่ยนเป็นเปิด puzzle จริงเมื่อเพื่อนทำเสร็จ
                     javax.swing.JOptionPane.showMessageDialog(GameMap2.this,
                             "กด E ที่จานอาหารแล้ว (puzzle กำลังจะมาเร็วๆ นี้)");
-                    heldKeys.clear();
+                } else {
+                    int target = nearestClosedBoxIndex();
+                    if (gradeBox.openNearestBox(GameMap2.this, player) && target >= 0) {
+                        openedIndexes.add(target);
+                        makeBoxTransparent(target);
+                    }
                 }
+                heldKeys.clear();
+                gradeBox.updatePrompts(player);
             }
         });
         for (String k : new String[] {"W", "A", "S", "D"}) {
@@ -217,7 +295,9 @@ public class GameMap2 extends javax.swing.JPanel {
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
             prompt.setVisible(isNearPlate());
+            gradeBox.updatePrompts(player);
         });
+        gradeBox.updatePrompts(player);
     }
 
     //ตำแหน่งจานอาหาร (จุด puzzle)
