@@ -130,4 +130,33 @@ public class CharacterData {
         }
         return list;
     }
+
+    // ตัวละครที่ผู้เล่นเลือกล่าสุดใน settings.csv ถ้ายังไม่เคยเลือกคืนตัวแรกของเพศหญิง (null ถ้าไม่มีข้อมูลเลย)
+    public static CharacterData loadSelected() {
+        String[] saved = loadSettings();
+        List<CharacterData> list = load(saved != null ? saved[0] : "female");
+        if (saved != null) {
+            for (CharacterData c : list) {
+                if (String.valueOf(c.getId()).equals(saved[1])) {
+                    return c;
+                }
+            }
+        }
+        List<CharacterData> girls = load("female");
+        return girls.isEmpty() ? null : girls.get(0);
+    }
+
+    // รูปตัวละครที่เลือก ย่อเป็น size x size ใช้เป็นรูปผู้เล่นในแมพ (null ถ้าหารูปไม่เจอ)
+    public static javax.swing.ImageIcon loadSelectedIcon(int size) {
+        CharacterData c = loadSelected();
+        if (c == null) {
+            return null;
+        }
+        java.net.URL url = CharacterData.class.getResource("/images/avatar/standy/" + c.getImage() + ".png");
+        if (url == null) {
+            return null;
+        }
+        java.awt.Image img = new javax.swing.ImageIcon(url).getImage();
+        return new javax.swing.ImageIcon(img.getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
+    }
 }
