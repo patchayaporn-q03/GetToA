@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.screen;
+import com.mycompany.grade.GradeManager;
 
 /**
  *
@@ -26,6 +27,8 @@ public class ResultScreen extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        lblGrade = new javax.swing.JLabel();
+        lblScore = new javax.swing.JLabel();
         btnred = new javax.swing.JLabel();
         btngreen = new javax.swing.JLabel();
         fram = new javax.swing.JLabel();
@@ -33,6 +36,12 @@ public class ResultScreen extends javax.swing.JPanel {
 
         setMinimumSize(new java.awt.Dimension(1280, 720));
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        lblGrade.setText("jLabel1");
+        add(lblGrade, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 310, 180, 40));
+
+        lblScore.setText("jLabel1");
+        add(lblScore, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 240, 180, 40));
 
         btnred.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/buttonred.png"))); // NOI18N
         add(btnred, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 500, 210, 70));
@@ -48,11 +57,18 @@ public class ResultScreen extends javax.swing.JPanel {
         add(map, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1280, 720));
     }// </editor-fold>//GEN-END:initComponents
 
-
+    public void displayResult() {
+        GradeManager gm = GameFrame.getGradeManager();
+        lblScore.setText("Score : " + gm.getTotalScore());
+        lblGrade.setText("Grade : " + gm.getGrade());
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel btngreen;
     private javax.swing.JLabel btnred;
     private javax.swing.JLabel fram;
+    private javax.swing.JLabel lblGrade;
+    private javax.swing.JLabel lblScore;
     private javax.swing.JLabel map;
     // End of variables declaration//GEN-END:variables
 

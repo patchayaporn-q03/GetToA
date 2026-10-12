@@ -197,7 +197,7 @@ public class GameMap1 extends javax.swing.JPanel {
         back.addActionListener(e -> {
             heldKeys.clear();
             moveTimer.stop();
-            Main.switchTo("mainmenu");
+            GameFrame.switchTo("mainmenu");
         });
         add(back, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 16, w, h), 0);
     }
@@ -309,7 +309,7 @@ public class GameMap1 extends javax.swing.JPanel {
             if (doorOpen && y + HIT_Y <= 160) {
                 heldKeys.clear();
                 moveTimer.stop();
-                Main.switchTo("map2");
+                GameFrame.switchTo("map2");
             }
         });
         prompt.setVisible(!doorOpen && isNearBook());

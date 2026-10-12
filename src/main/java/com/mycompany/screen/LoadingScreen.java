@@ -44,7 +44,7 @@ public class LoadingScreen extends JPanel {
             repaint();
             if (elapsed >= LOADING_TIME_MS) {
                 timer.stop();
-                Main.switchTo(NEXT_SCREEN);
+                GameFrame.switchTo(NEXT_SCREEN);
             }
         });
         timer.start();
