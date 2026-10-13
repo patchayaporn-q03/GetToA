@@ -4,43 +4,48 @@ package com.mycompany.grade;
 import com.mycompany.data.SaveData;
 
 public class GradeManager {
+    /**
+     * @param boxScore คะแนนจากกล่อง
+     * @param puzzleScore คะแนนจาก puzzle
+     * GradeManager.getInstance() จัดการคะแนนกลางของเกม ใช้ร่วมกันทุกแมพและทุกหน้าจอ หรือแมพที่มีคะแนนเป็นของแมพนั้นๆ
+     * @param reset ล้างคะแนนทั้งหมดถ้าเริ่มเกมใหม่
+     * @param addBoxScore รับคะแนนกล่องแต่ละครั้งมาสะสม และเก็บคะแนนไว้หากได้กล่องกับดักจะได้เอามาลบได้
+     * @param setBoxScore กำหนดคะแนนกล่องโดยตรง
+     * @param getBoxScore คะแนนกล่องที่ใช้แสดงและคำนวณจริง มีค่า 0 - 30
+     * @param setPuzzleScore กำหนดคะแนนจาก puzzle 70 คะแนน
+     * @param getPuzzleScore คะแนนจาก puzzle
+     * @param getTotalScore กำหนดคะแนนรวมมาจาก กล่อง + puzzle
+     * @param getGrade กำหนดเกรด
+     * @param saveResult บันทึกผลคะแนนสุดท้าย
+    */
 
-    // คะแนนกล่องและคะแนนปริศนา
     private int boxScore;
     private int puzzleScore;
 
-    // ตัวจัดการคะแนนกลางของเกม ใช้ร่วมกันทุกแมพและทุกหน้าจอ
-    // เรียกใช้: GradeManager.getInstance()
     private static final GradeManager INSTANCE = new GradeManager();
 
     public static GradeManager getInstance() {
         return INSTANCE;
     }
 
-    // ยังสร้าง instance แยกได้ เช่นใช้ทดสอบ หรือแมพที่ต้องการคะแนนของตัวเอง
     public GradeManager() {
         boxScore = 0;
         puzzleScore = 0;
     }
 
-    // ล้างคะแนนทั้งหมด ใช้ตอนเริ่มเกมใหม่
     public void reset() {
         boxScore = 0;
         puzzleScore = 0;
     }
 
-    // รับคะแนนกล่องแต่ละครั้งมาสะสม
-    // เก็บคะแนนดิบไว้ เพื่อให้คะแนนกับดัก -10 มีผลถูกต้อง
     public void addBoxScore(int score) {
         boxScore += score;
     }
 
-    // ใช้กำหนดคะแนนกล่องโดยตรง หากจำเป็น
     public void setBoxScore(int score) {
         boxScore = score;
     }
 
-    // คะแนนกล่องที่ใช้แสดงและคำนวณจริง อยู่ระหว่าง 0 ถึง 30
     public int getBoxScore() {
         return Math.max(0, Math.min(boxScore, 30));
     }
@@ -73,7 +78,6 @@ public class GradeManager {
         }
     }
 
-    // บันทึกผลคะแนนสุดท้าย
     public void saveResult() {
         SaveData.savePlayerScore(
                 getBoxScore(),

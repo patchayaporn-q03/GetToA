@@ -145,15 +145,21 @@ public class GradeBox {
             JLabel box = new JLabel(closedIcon);
             box.setBounds(x, y, BOX_SIZE, BOX_SIZE);
 
-            JLabel prompt = new JLabel(
-                    "กด E เพื่อเปิดกล่อง",
-                    SwingConstants.CENTER);
+            // ป้ายปุ่ม E แบบเดียวกับจุดเล่น puzzle
+            JLabel prompt = new JLabel("E", SwingConstants.CENTER);
+            prompt.setFont(new java.awt.Font(
+                    java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 16));
+            prompt.setForeground(new java.awt.Color(0x6B4423));
+            prompt.setOpaque(true);
+            prompt.setBackground(new java.awt.Color(0xFFF6DC));
+            prompt.setBorder(BorderFactory.createLineBorder(
+                    new java.awt.Color(0xD9A441), 2));
 
             prompt.setBounds(
-                    x - 45,
-                    y - 25,
-                    BOX_SIZE + 90,
-                    20);
+                    x + BOX_SIZE / 2 - 14,
+                    y - 34,
+                    28,
+                    26);
 
             prompt.setVisible(false);
 
