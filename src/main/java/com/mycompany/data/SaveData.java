@@ -21,22 +21,4 @@ public class SaveData {
             e.printStackTrace();
         }
     }
-
-    // บันทึกตัวละครที่ผู้เล่นเลือก
-    public static void saveCharacter(
-            int character,
-            String gender) {
-
-        try (FileWriter writer = new FileWriter("settings.csv", true)) {
-
-            writer.write(
-                character + "," +
-                gender + "\n"
-            );
-
-        } catch (IOException e) {
-            System.out.println("ไม่สามารถบันทึกตัวละครได้");
-            e.printStackTrace();
-        }
-    }
 }

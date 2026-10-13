@@ -32,7 +32,16 @@ public class CharacterData {
         "6,female,Molly,molly,molly_walk",
         "7,female,Mabel,mabel,mabel_walk",
         "8,female,Luna,luna,luna_walk",
-        "9,female,Eliana,eliana,eliana_walk"
+        "9,female,Eliana,eliana,eliana_walk",
+        "10,male,Aiden,aiden,",
+        "11,male,Asher,asher,",
+        "12,male,Dylan,dylan,",
+        "13,male,Ethan,ethan,",
+        "14,male,Kai,kai,",
+        "15,male,Leon,leon,",
+        "16,male,Lucas,lucas,",
+        "17,male,Noah,noah,",
+        "18,male,Silas,silas,"
     );
 
     private final int id;
@@ -67,6 +76,11 @@ public class CharacterData {
 
     public String getWalkImage() {
         return walkImage;
+    }
+
+    // โฟลเดอร์รูป standy ตามเพศ (หญิง = standy, ชาย = standyboy)
+    public static String standyFolder(String gender) {
+        return "male".equalsIgnoreCase(gender) ? "standyboy" : "standy";
     }
 
     public static final String SETTINGS_FILE = DIR + "/settings.csv";
@@ -117,7 +131,7 @@ public class CharacterData {
             int id = Integer.parseInt(s[1].trim());
             for (CharacterData c : load(s[0].trim())) {
                 if (c.getId() == id) {
-                    java.net.URL url = CharacterData.class.getResource("/images/avatar/standy/" + c.getImage() + ".png");
+                    java.net.URL url = CharacterData.class.getResource("/images/avatar/" + standyFolder(c.getGender()) + "/" + c.getImage() + ".png");
                     if (url == null) {
                         return null;
                     }
