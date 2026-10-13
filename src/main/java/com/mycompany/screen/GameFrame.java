@@ -31,7 +31,7 @@ public class GameFrame {
             cardLayout = new CardLayout();
             cards = new JPanel(cardLayout);
 
-            //cards.add(new LoadingScreen(), "loading");
+            cards.add(new LoadingScreen(), "loading");
             cards.add(new MainMenuScreen(), "mainmenu");
             cards.add(new CharacterSelect(), "avatar");
             cards.add(new GameMap1(), "map1");

@@ -21,6 +21,8 @@ public class CharacterSelect extends javax.swing.JPanel {
         javax.swing.ButtonGroup genderGroup = new javax.swing.ButtonGroup();
         genderGroup.add(chickboy);
         genderGroup.add(chickgirl);
+        chickboy.addActionListener(e -> showBoxes(false));
+        chickgirl.addActionListener(e -> showBoxes(true));
         chickboy.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/images/charecter/male_selected.png")));
         chickgirl.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/images/charecter/female_selected.png")));
 
@@ -37,46 +39,69 @@ public class CharacterSelect extends javax.swing.JPanel {
         styleNameField();
 
         //ค่าเริ่มต้น เพศหญิง และช่องตัวละครช่องแรก
-        chickgirl.setSelected(true);
-        showGirlBoxes();   // เลือกช่องเริ่มต้นให้ในเมธอดนี้
+        String[] last = com.mycompany.data.CharacterData.loadSettings();
+        boolean startFemale = last == null || !last[0].trim().equalsIgnoreCase("male");
+        (startFemale ? chickgirl : chickboy).setSelected(true);
+        showBoxes(startFemale);   // เลือกช่องเริ่มต้นให้ในเมธอดนี้
         //framglass.setBackground(new java.awt.Color(255, 255, 255, 120));
         setupGlassPanel();
     }
 
-    //ตัวละครหญิง อ่านจาก Data/character_stats.csv
+    //ตัวละครหญิง/ชาย อ่านจาก Data/character_stats.csv
     private final java.util.List<com.mycompany.data.CharacterData> girls =
             com.mycompany.data.CharacterData.load("female");
+    private final java.util.List<com.mycompany.data.CharacterData> boys =
+            com.mycompany.data.CharacterData.load("male");
 
-    //ช่องตัวละครที่เลือกอยู่ตอนนี้ (index ใน girls)
+    //รายชื่อตัวละครของเพศที่เลือกอยู่ตอนนี้
+    private java.util.List<com.mycompany.data.CharacterData> characters = girls;
+
+    //ช่องตัวละครที่เลือกอยู่ตอนนี้ (index ใน characters)
     private int selectedIndex = 0;
+
+    private final java.awt.event.ActionListener[] boxListeners = new java.awt.event.ActionListener[9];
+
+    private String folder() {
+        return com.mycompany.data.CharacterData.standyFolder(characters == boys ? "male" : "female");
+    }
 
     private javax.swing.ImageIcon loadPic(String name, int size) {
         java.awt.Image img = new javax.swing.ImageIcon(
-                getClass().getResource("/images/avatar/standy/" + name + ".png")).getImage();
+                getClass().getResource("/images/avatar/" + folder() + "/" + name + ".png")).getImage();
         return new javax.swing.ImageIcon(img.getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
     }
 
-    private void showGirlBoxes() {
+    private void showBoxes(boolean female) {
+        characters = female ? girls : boys;
+        String gender = female ? "female" : "male";
         javax.swing.JToggleButton[] boxes = {
             charecter1, charecter2, charecter3, charecter4, charecter5,
             charecter6, charecter7, charecter8, charecter9};
-        for (int i = 0; i < boxes.length && i < girls.size(); i++) {
+        for (int i = 0; i < boxes.length; i++) {
+            if (boxListeners[i] != null) {
+                boxes[i].removeActionListener(boxListeners[i]);
+                boxListeners[i] = null;
+            }
+            boxes[i].setVisible(i < characters.size());
+        }
+        for (int i = 0; i < boxes.length && i < characters.size(); i++) {
             final int index = i;
-            String image = girls.get(i).getImage();
+            String image = characters.get(i).getImage();
             // วาดตัวละครทับบนกรอบ ให้อยู่ในขอบเขตกล่อง 100x100 (ตัวละคร 80x80 อยู่กึ่งกลาง)
             boxes[i].setIcon(boxWithPic("box_norma", image));
             boxes[i].setSelectedIcon(boxWithPic("box_selected", image));
             // กดช่องแล้วแสดงตัวละครตัวใหญ่ด้านซ้าย และใส่ชื่อตัวละครในช่องชื่อ
-            boxes[i].addActionListener(e -> selectCharacter(index, null));
+            boxListeners[i] = e -> selectCharacter(index, null);
+            boxes[i].addActionListener(boxListeners[i]);
         }
 
         // ค่าเริ่มต้น: ตัวที่เคยเลือกไว้ใน settings.csv ถ้าไม่มีใช้ช่องแรก
         int start = 0;
         String savedName = null;
         String[] saved = com.mycompany.data.CharacterData.loadSettings();
-        if (saved != null) {
-            for (int i = 0; i < girls.size() && i < boxes.length; i++) {
-                if (String.valueOf(girls.get(i).getId()).equals(saved[1])) {
+        if (saved != null && saved[0].trim().equalsIgnoreCase(gender)) {
+            for (int i = 0; i < characters.size() && i < boxes.length; i++) {
+                if (String.valueOf(characters.get(i).getId()).equals(saved[1].trim())) {
                     start = i;
                     savedName = saved[2];
                 }
@@ -89,7 +114,7 @@ public class CharacterSelect extends javax.swing.JPanel {
     //แสดงตัวละครที่เลือก name = ชื่อที่ผู้เล่นเคยตั้ง (null = ใช้ชื่อตัวละครจาก csv)
     private void selectCharacter(int index, String name) {
         selectedIndex = index;
-        com.mycompany.data.CharacterData c = girls.get(index);
+        com.mycompany.data.CharacterData c = characters.get(index);
         charecterpic.setIcon(loadPic(c.getImage(), 200));
         editname.setText(name != null && !name.isBlank() ? name : c.getName());
     }
@@ -104,7 +129,7 @@ public class CharacterSelect extends javax.swing.JPanel {
         g.drawImage(new javax.swing.ImageIcon(
                 getClass().getResource("/images/charecter/" + frameName + ".png")).getImage(), 0, 0, 100, 100, null);
         g.drawImage(new javax.swing.ImageIcon(
-                getClass().getResource("/images/avatar/standy/" + picName + ".png")).getImage(), 10, 10, 80, 80, null);
+                getClass().getResource("/images/avatar/" + folder() + "/" + picName + ".png")).getImage(), 10, 10, 80, 80, null);
         g.dispose();
         return new javax.swing.ImageIcon(img);
     }
@@ -314,7 +339,7 @@ public class CharacterSelect extends javax.swing.JPanel {
         confirm.setEnabled(false);
 
         //บันทึกตัวละครที่เลือกและชื่อที่ผู้เล่นแก้ลง Data/settings.csv
-        com.mycompany.data.CharacterData chosen = girls.get(selectedIndex);
+        com.mycompany.data.CharacterData chosen = characters.get(selectedIndex);
         String playerName = editname.getText().isBlank() ? chosen.getName() : editname.getText();
         com.mycompany.data.CharacterData.saveSettings(chosen.getId(), chosen.getGender(), playerName);
 
@@ -359,7 +384,12 @@ public class CharacterSelect extends javax.swing.JPanel {
     }//GEN-LAST:event_charecter6ActionPerformed
 
     private void cancel(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancel
-        // TODO add your handling code here: bbutton no
+        //รีเซ็ตกลับค่าเริ่มต้น: เพศเดิมที่เลือกอยู่ ไปที่ตัวแรกและใช้ชื่อตัวละครจาก csv
+        if (characters.isEmpty()) {
+            return;
+        }
+        charecter1.setSelected(true);
+        selectCharacter(0, null);
     }//GEN-LAST:event_cancel
 
     private void chickboyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chickboyActionPerformed
