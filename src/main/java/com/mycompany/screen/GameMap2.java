@@ -21,6 +21,21 @@ public class GameMap2 extends javax.swing.JPanel {
         setupBoxes();
         setupPlayer();
         setupBackButton();
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refreshPlayerImage();
+            }
+        });
+        refreshPlayerImage();
+    }
+
+    //เปลี่ยนรูปผู้เล่นเป็นตัวละครที่เลือกจากหน้าเลือกตัวละคร (ถ้าไม่มีข้อมูล ใช้รูปเดิม)
+    private void refreshPlayerImage() {
+        javax.swing.ImageIcon icon = com.mycompany.data.CharacterData.loadSelectedIcon(PLAYER_SIZE);
+        if (icon != null) {
+            player.setIcon(icon);
+        }
     }
 
     //กล่องสมบัติ วางตายตัว: กล่องบนพื้นที่เดินได้ + กล่องบนโต๊ะ
@@ -223,20 +238,11 @@ public class GameMap2 extends javax.swing.JPanel {
 
     //ตัวละครเดินด้วย W A S D
     private void setupPlayer() {
-        java.awt.image.BufferedImage src;
-        try {
-            src = javax.imageio.ImageIO.read(getClass().getResource("/images/girl.png"));
-        } catch (java.io.IOException ex) {
-            throw new java.io.UncheckedIOException(ex);
-        }
-        java.awt.image.BufferedImage big = new java.awt.image.BufferedImage(
-                PLAYER_SIZE, PLAYER_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g = big.createGraphics();
-        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
-                java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g.drawImage(src, 0, 0, PLAYER_SIZE, PLAYER_SIZE, null);
-        g.dispose();
-        player = new javax.swing.JLabel(new javax.swing.ImageIcon(big));
+        // ตัวละครเริ่มต้นคือ pikachu.gif (ย่อให้พอดี PLAYER_SIZE) ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
+        java.awt.Image src = new javax.swing.ImageIcon(getClass().getResource(
+                "/com/mycompany/puzzle/assets/character/pikachu.gif")).getImage();
+        player = new javax.swing.JLabel(new javax.swing.ImageIcon(
+                src.getScaledInstance(PLAYER_SIZE, PLAYER_SIZE, java.awt.Image.SCALE_SMOOTH)));
         add(player, new org.netbeans.lib.awtextra.AbsoluteConstraints(
                 SPAWN_X, SPAWN_Y, PLAYER_SIZE, PLAYER_SIZE), 0);
 

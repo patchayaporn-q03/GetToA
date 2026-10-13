@@ -224,21 +224,11 @@ public class GameMap1 extends javax.swing.JPanel {
 
     //ตัวละครเดินด้วย W A S D (กดค้างเพื่อเดินต่อเนื่อง, กดสองปุ่มพร้อมกันเดินทแยงได้)
     private void setupPlayer() {
-        // ขยายรูปแบบ nearest-neighbor เพื่อให้พิกเซลอาร์ตคมชัด ไม่เบลอ
-        java.awt.image.BufferedImage src;
-        try {
-            src = javax.imageio.ImageIO.read(getClass().getResource("/images/girl.png"));
-        } catch (java.io.IOException ex) {
-            throw new java.io.UncheckedIOException(ex);
-        }
-        java.awt.image.BufferedImage big = new java.awt.image.BufferedImage(
-                PLAYER_SIZE, PLAYER_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-        java.awt.Graphics2D g = big.createGraphics();
-        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
-                java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g.drawImage(src, 0, 0, PLAYER_SIZE, PLAYER_SIZE, null);
-        g.dispose();
-        player = new javax.swing.JLabel(new javax.swing.ImageIcon(big));
+        // ตัวละครเริ่มต้นคือ pikachu.gif (ย่อให้พอดี PLAYER_SIZE) ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
+        java.awt.Image src = new javax.swing.ImageIcon(getClass().getResource(
+                "/com/mycompany/puzzle/assets/character/pikachu.gif")).getImage();
+        player = new javax.swing.JLabel(new javax.swing.ImageIcon(
+                src.getScaledInstance(PLAYER_SIZE, PLAYER_SIZE, java.awt.Image.SCALE_SMOOTH)));
         // index 0 = วางบนสุด เพื่อให้อยู่หน้าพื้นหลังและโต๊ะ
         add(player, new org.netbeans.lib.awtextra.AbsoluteConstraints(
                 SPAWN_X, SPAWN_Y, PLAYER_SIZE, PLAYER_SIZE), 0);

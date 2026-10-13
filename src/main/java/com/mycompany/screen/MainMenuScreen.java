@@ -67,7 +67,7 @@ public class MainMenuScreen extends javax.swing.JPanel {
 
     private void playGame(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playGame
         // TODO add your handling code here:
-        GameFrame.switchTo("map1");
+        GameFrame.startNewGame();
     }//GEN-LAST:event_playGame
 
 

@@ -22,6 +22,8 @@ public class GameFrame {
     private static CardLayout cardLayout;
     private static JPanel cards;
     private static ResultScreen resultScreen;
+    private static GameMap1 map1;
+    private static GameMap2 map2;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -34,8 +36,10 @@ public class GameFrame {
             cards.add(new LoadingScreen(), "loading");
             cards.add(new MainMenuScreen(), "mainmenu");
             cards.add(new CharacterSelect(), "avatar");
-            cards.add(new GameMap1(), "map1");
-            cards.add(new GameMap2(), "map2");
+            map1 = new GameMap1();
+            map2 = new GameMap2();
+            cards.add(map1, "map1");
+            cards.add(map2, "map2");
             resultScreen = new ResultScreen();
             cards.add(resultScreen, "result");
 
@@ -46,8 +50,24 @@ public class GameFrame {
         });
     }
     
-    public static GradeManager getGradeManager() { 
-        return gradeManager; 
+    public static GradeManager getGradeManager() {
+        return gradeManager;
+    }
+
+    // เริ่มเกมใหม่: ล้างคะแนนทั้งหมด และสร้างแมพ 1/2 ใหม่ (กล่อง ประตู และตำแหน่งผู้เล่นกลับเป็นค่าเริ่มต้น)
+    public static void startNewGame() {
+        GradeManager.getInstance().reset();
+        com.mycompany.puzzle.PuzzleScore.reset();
+        com.mycompany.puzzle.saifai.WiringTask.reset();
+        resultScreen.setNext("mainmenu", "หน้าหลัก");
+
+        cards.remove(map1);
+        cards.remove(map2);
+        map1 = new GameMap1();
+        map2 = new GameMap2();
+        cards.add(map1, "map1");
+        cards.add(map2, "map2");
+        switchTo("map1");
     }
 
     public static void switchTo(String name) {
