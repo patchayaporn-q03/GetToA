@@ -9,7 +9,7 @@
 |---|---|---|
 | ธีรภัทร ศรีอาจ | 6821651388 | หน้า Player / Character / GameFrame / PuzzleStation / ระบบเก็บข้อมูลของหน้าที่รับผิดชอบ |
 | พัชญาพร จันอุดม | 6821651531 | หน้า LoadingScreen / MainMenuScreen / ResultScreen / PuzzleStation / CharacterSelect / ระบบเก็บข้อมูลของหน้าที่รับผิดชอบ |
-| ภัทราภรณ์ หินขุนทด | 6821651621 | หน้า GradeBox / CharacterSelect / GradeManager / ResultScreen / ระบบเก็บข้อมูลของหน้าที่รับผิดชอบ |
+| ภัทราภรณ์ หินขุนทด | 6821651621 | หน้า GradeBox / CharacterSelect / GradeManager / ResultScreen / GameResult / ระบบเก็บข้อมูลของหน้าที่รับผิดชอบ |
 ---
  
 ## ฟังก์ชันการทำงานของโปรแกรม
@@ -63,6 +63,7 @@
 - `GradeBox` กล่องเก็บคะแนนที่จะใช้สุ่มเมื่อผู้เล่นเปิด
 - `GradeManager` รวมคะแนนจากกล่อง + puzzle แล้วคำนวนเป็นเกรดสุดท้ายเมื่อผู้เล่นเล่นครบ
 - `ResultScreen` หน้าสรุปผล/เกรดสุดท้ายตอนจบเกม
+- `GameResult` รวมผลเกมทั้งหมดไว้ในที่เดียว ให้หน้าจอสรุปผล
 
 โฟล์เดอร์เก็บไฟล์ข้อมูล
 - `DataGame` เก็บข้อมูลเกม จะแยกเก็บข้อมูลของแต่ละไฟล์
