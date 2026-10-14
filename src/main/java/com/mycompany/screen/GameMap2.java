@@ -25,6 +25,7 @@ public class GameMap2 extends javax.swing.JPanel {
             @Override
             public void componentShown(java.awt.event.ComponentEvent e) {
                 refreshPlayerImage();
+                gradeBox.syncManager();
             }
         });
         refreshPlayerImage();
