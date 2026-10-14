@@ -153,7 +153,6 @@ public class PuzzleStation extends JPanel implements KeyListener {
 
         g.setColor(Color.BLACK);
         g.setFont(new Font(com.mycompany.screen.GameFrame.FONT_NAME, Font.BOLD, 16));
-        g.drawString("W A S D = Move", 30, 30);
         g.drawString(String.format("Time : %.1f sec", time), 1050, 30);
 
         if (complete) {
