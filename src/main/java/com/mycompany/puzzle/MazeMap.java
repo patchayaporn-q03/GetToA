@@ -3,371 +3,177 @@ package com.mycompany.puzzle;
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 public class MazeMap {
 
-    public static final int WIDTH = 960;
-    public static final int HEIGHT = 640;
+    // ขนาดเฟรมของ Map
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
+
+    private static final String MAP_PATH = "/com/mycompany/puzzle/assets/map/map.png";
+
+    // ระยะที่ย่อ hitbox เข้าจากขอบตัวละคร (ให้เดินผ่านทางแคบได้)
+    private static final int HITBOX_INSET = 6;
+
+    // ระยะห่างของจุดตรวจชนบนขอบ hitbox
+    private static final int SAMPLE_STEP = 4;
+
+    // รัศมีการตัดเส้นบางๆ ออกจากมาสก์กำแพง
+    private static final int WALL_OPEN_RADIUS = 4;
 
     private BufferedImage background;
 
-    // =========================================================
-    // ขนาดเขาวงกต
-    // =========================================================
+    // true = กำแพง/เดินไม่ได้ (สร้างจากสีของภาพ map)
+    private boolean[][] wall;
 
-    private static final int ROWS = 15;
-    private static final int COLS = 18;
+    // จุดเริ่มต้น (มุมบนซ้ายของตัวละคร) - ประตูด้านบนซ้าย
+    private static final int START_X = 123;
+    private static final int START_Y = 32;
 
-    /*
-     * # = กำแพง
-     * . = ทางเดิน
-     *
-     * S = จุดเริ่มต้น
-     * G = จุดหมาย
-     *
-     * จุดเริ่มต้น : แถว 2 คอลัมน์ 2
-     * จุดหมาย     : แถว 12 คอลัมน์ 15
-     */
-
-    private static final String[] MAZE = {
-
-    "##################",
-    "####.#############",
-    "##...#############",
-    "##.#.#############",
-    "####.......#######",
-    "##########.#######",
-    "##########.#######",
-    "##########.#######",
-    "####.........#####",
-    "####.#######.#####",
-    "##...#######.#####",
-    "##.###.#####.#####",
-    "##.#...#.......###",
-    "####.#########.###",
-    "##################"
-};
-
-
-    // =========================================================
-    // ตำแหน่งพื้นที่เขาวงกต
-    // =========================================================
-
-    private static final double MAZE_X = 135.0;
-    private static final double MAZE_Y = 21.0;
-    private static final double CELL_SIZE = 37.5;
-
-
-    // =========================================================
-    // จุดเริ่มต้น
-    // =========================================================
-
-    private static final int START_ROW = 2;
-    private static final int START_COL = 2;
-
-    private int startX;
-    private int startY;
-
-
-    // =========================================================
-    // จุดหมาย
-    // =========================================================
-
-    private static final int GOAL_ROW = 12;
-    private static final int GOAL_COL = 15;
-
-    private Rectangle goal;
-
-
-    // =========================================================
-    // Constructor
-    // =========================================================
+    // จุดหมาย - ประตูด้านล่างขวา
+    private final Rectangle goal = new Rectangle(1085, 640, 80, 40);
 
     public MazeMap() {
-
         loadBackground();
-
-        // ตำแหน่ง Start
-        startX = getCellX(START_COL);
-        startY = getCellY(START_ROW);
-
-        // ตำแหน่ง Goal
-        goal = new Rectangle(
-                getCellX(GOAL_COL),
-                getCellY(GOAL_ROW),
-                (int) CELL_SIZE,
-                (int) CELL_SIZE
-        );
+        buildWallMask();
     }
 
-
-    // =========================================================
-    // โหลดภาพ Map
-    // =========================================================
-
     private void loadBackground() {
-
         try {
+            BufferedImage src = ImageIO.read(getClass().getResource(MAP_PATH));
 
-            background = ImageIO.read(
-                    getClass().getResource("/com/mycompany/puzzle/assets/map/map.png")
-            );
+            // ย่อ/ขยายภาพให้พอดีเฟรม 1280x720
+            background = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = background.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2.drawImage(src, 0, 0, WIDTH, HEIGHT, null);
+            g2.dispose();
 
             System.out.println("โหลด map สำเร็จ");
-
         } catch (IOException | IllegalArgumentException e) {
-
-            System.out.println("ไม่พบ map.png");
-
+            System.out.println("ไม่พบ map-ver2.png");
             background = null;
         }
     }
 
+    // กำแพงในภาพเป็นสีน้ำเงินเข้ม/ดำ ส่วนพื้นเป็นสีครีม
+    private void buildWallMask() {
+        wall = new boolean[HEIGHT][WIDTH];
 
-    // =========================================================
-    // แปลง Column -> X
-    // =========================================================
+        if (background == null) {
+            return;
+        }
 
-    private int getCellX(int col) {
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                int rgb = background.getRGB(x, y);
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+                int max = Math.max(r, Math.max(g, b));
 
-        return (int) (
-                MAZE_X + (col * CELL_SIZE)
-        );
+                wall[y][x] = max < 125 && b >= g - 2 && b >= r - 4 && b - r < 35;
+            }
+        }
+
+
+        // เปิดมาสก์ (erode แล้ว dilate) เพื่อตัดเส้นขอบบางๆ ของเฟอร์นิเจอร์ออก
+        // เหลือเฉพาะกำแพงหนาจริงๆ ของเขาวงกต
+        wall = morph(morph(wall, false, WALL_OPEN_RADIUS), true, WALL_OPEN_RADIUS);
     }
 
+    // dilate = true: ขยายกำแพง, false: หดกำแพง (แยกแกน x/y เพื่อความเร็ว)
+    private static boolean[][] morph(boolean[][] src, boolean dilate, int radius) {
+        boolean[][] tmp = new boolean[HEIGHT][WIDTH];
+        boolean[][] out = new boolean[HEIGHT][WIDTH];
 
-    // =========================================================
-    // แปลง Row -> Y
-    // =========================================================
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                tmp[y][x] = window(src, x, y, 1, 0, dilate, radius);
+            }
+        }
 
-    private int getCellY(int row) {
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                out[y][x] = window(tmp, x, y, 0, 1, dilate, radius);
+            }
+        }
 
-        return (int) (
-                MAZE_Y + (row * CELL_SIZE)
-        );
+        return out;
     }
 
-
-    // =========================================================
-    // Get Start X
-    // =========================================================
+    private static boolean window(boolean[][] m, int x, int y, int dx, int dy,
+            boolean dilate, int radius) {
+        for (int i = -radius; i <= radius; i++) {
+            int px = x + i * dx;
+            int py = y + i * dy;
+            // นอกภาพถือเป็นกำแพง
+            boolean v = px < 0 || py < 0 || px >= WIDTH || py >= HEIGHT || m[py][px];
+            if (v == dilate) {
+                return dilate;
+            }
+        }
+        return !dilate;
+    }
 
     public int getStartX() {
-
-        return startX;
+        return START_X;
     }
-
-
-    // =========================================================
-    // Get Start Y
-    // =========================================================
 
     public int getStartY() {
-
-        return startY;
+        return START_Y;
     }
-
-
-    // =========================================================
-    // วาด Map
-    // =========================================================
 
     public void draw(Graphics g) {
-
         if (background != null) {
-
-            g.drawImage(
-                    background,
-                    0,
-                    0,
-                    WIDTH,
-                    HEIGHT,
-                    null
-            );
-
+            g.drawImage(background, 0, 0, WIDTH, HEIGHT, null);
         } else {
-
             g.setColor(Color.BLACK);
-
-            g.fillRect(
-                    0,
-                    0,
-                    WIDTH,
-                    HEIGHT
-            );
+            g.fillRect(0, 0, WIDTH, HEIGHT);
 
             g.setColor(Color.WHITE);
-
-            g.drawString(
-                    "map.png not found",
-                    20,
-                    30
-            );
+            g.drawString("map-ver2.png not found", 20, 30);
         }
     }
 
+    // ตรวจว่าตำแหน่งของ Player ชนกำแพงหรือไม่
+    public boolean isWall(int x, int y, int width, int height) {
+        int left = x + HITBOX_INSET;
+        int right = x + width - HITBOX_INSET;
+        int top = y + HITBOX_INSET;
+        int bottom = y + height - HITBOX_INSET;
 
-    // =========================================================
-    // ตรวจสอบว่า Cell เป็นกำแพงหรือไม่
-    // =========================================================
-
-    private boolean isWallCell(int row, int col) {
-
-        // ป้องกันออกนอก Array
-        if (
-                row < 0 ||
-                row >= ROWS ||
-                col < 0 ||
-                col >= COLS
-        ) {
-
-            return true;
+        for (int px = left; px <= right; px += SAMPLE_STEP) {
+            if (isWallPixel(px, top) || isWallPixel(px, bottom)) {
+                return true;
+            }
         }
 
-        return MAZE[row].charAt(col) == '#';
+        for (int py = top; py <= bottom; py += SAMPLE_STEP) {
+            if (isWallPixel(left, py) || isWallPixel(right, py)) {
+                return true;
+            }
+        }
+
+        return isWallPixel(right, bottom) || isWallPixel(right, top);
     }
 
-
-    // =========================================================
-    // ตรวจสอบตำแหน่ง Player
-    // =========================================================
-
-    public boolean isWall(
-            int x,
-            int y,
-            int width,
-            int height) {
-
-        // ขอบด้านซ้าย
-        int left = x + 2;
-
-        // ขอบด้านขวา
-        int right = x + width - 2;
-
-        // ขอบด้านบน
-        int top = y + 2;
-
-        // ขอบด้านล่าง
-        int bottom = y + height - 2;
-
-
-        // ตรวจ 4 มุม
-        if (isWallPosition(left, top)) {
+    private boolean isWallPixel(int x, int y) {
+        if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) {
             return true;
         }
 
-        if (isWallPosition(right, top)) {
-            return true;
-        }
-
-        if (isWallPosition(left, bottom)) {
-            return true;
-        }
-
-        if (isWallPosition(right, bottom)) {
-            return true;
-        }
-
-
-        // ตรงกลางด้านซ้าย
-        if (isWallPosition(
-                left,
-                y + height / 2)) {
-
-            return true;
-        }
-
-
-        // ตรงกลางด้านขวา
-        if (isWallPosition(
-                right,
-                y + height / 2)) {
-
-            return true;
-        }
-
-
-        // ตรงกลางด้านบน
-        if (isWallPosition(
-                x + width / 2,
-                top)) {
-
-            return true;
-        }
-
-
-        // ตรงกลางด้านล่าง
-        if (isWallPosition(
-                x + width / 2,
-                bottom)) {
-
-            return true;
-        }
-
-
-        return false;
+        return wall[y][x];
     }
 
-
-    // =========================================================
-    // ตรวจสอบจุดว่าอยู่ในกำแพงหรือไม่
-    // =========================================================
-
-    private boolean isWallPosition(
-            int x,
-            int y) {
-
-        // ถ้าอยู่นอกพื้นที่ Maze
-        // ให้ถือว่าเป็นกำแพง
-
-        if (
-                x < MAZE_X ||
-                y < MAZE_Y ||
-                x >= MAZE_X + COLS * CELL_SIZE ||
-                y >= MAZE_Y + ROWS * CELL_SIZE
-        ) {
-
-            return true;
-        }
-
-
-        // คำนวณ Column
-        int col = (int) (
-                (x - MAZE_X) / CELL_SIZE
-        );
-
-
-        // คำนวณ Row
-        int row = (int) (
-                (y - MAZE_Y) / CELL_SIZE
-        );
-
-
-        // ตรวจจากแผนที่
-        return isWallCell(row, col);
-    }
-
-
-    // =========================================================
     // ตรวจว่า Player ถึง Goal หรือยัง
-    // =========================================================
-
-    public boolean reachedGoal(
-            int x,
-            int y,
-            int width,
-            int height) {
-
-        Rectangle player = new Rectangle(
-                x,
-                y,
-                width,
-                height
-        );
-
-        return player.intersects(goal);
+    public boolean reachedGoal(int x, int y, int width, int height) {
+        return new Rectangle(x, y, width, height).intersects(goal);
     }
 }
