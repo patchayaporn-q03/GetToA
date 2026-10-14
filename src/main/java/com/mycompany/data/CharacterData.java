@@ -145,6 +145,38 @@ public class CharacterData {
         return null;
     }
 
+    // sprite sheet เดินของตัวละครที่เลือกล่าสุด (images/avatar/animation/<ชื่อรูป>_walk.png)
+    // คืน null ถ้ายังไม่เคยเลือก หรือตัวละครนั้นยังไม่มีแอนิเมชัน (เช่น ตัวละครชาย)
+    public static java.awt.image.BufferedImage loadSelectedWalkSheet() {
+        String[] s = loadSettings();
+        if (s == null) {
+            return null;
+        }
+        try {
+            int id = Integer.parseInt(s[1].trim());
+            for (CharacterData c : load(s[0].trim())) {
+                if (c.getId() == id) {
+                    return loadWalkSheet(c.getImage());
+                }
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // sprite sheet เดินของตัวละครตามชื่อรูป คืน null ถ้าไม่มีไฟล์
+    public static java.awt.image.BufferedImage loadWalkSheet(String image) {
+        try {
+            java.net.URL url = CharacterData.class.getResource(
+                    "/images/avatar/animation/" + image + "_walk.png");
+            return url == null ? null : javax.imageio.ImageIO.read(url);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     // อ่านตัวละครของเพศที่ต้องการ (เรียงตาม id)
     public static List<CharacterData> load(String gender) {
         List<CharacterData> list = new ArrayList<>();
