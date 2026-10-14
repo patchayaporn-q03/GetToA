@@ -67,7 +67,7 @@ public class CharacterSelect extends javax.swing.JPanel {
 
     private javax.swing.ImageIcon loadPic(String name, int size) {
         // ใช้ท่ายืนตรงจากแอนิเมชัน (ตัวเดียวกับที่เดินในเกม) ถ้าไม่มีใช้รูป standy เดิม
-        javax.swing.ImageIcon standing = WalkSprite.standingIcon(name, size);
+        javax.swing.ImageIcon standing = WalkSprite.standingIcon(name, characters == boys, size);
         if (standing != null) {
             return standing;
         }
@@ -133,7 +133,7 @@ public class CharacterSelect extends javax.swing.JPanel {
                 java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g.drawImage(new javax.swing.ImageIcon(
                 getClass().getResource("/images/charecter/" + frameName + ".png")).getImage(), 0, 0, 100, 100, null);
-        javax.swing.ImageIcon standing = WalkSprite.standingIcon(picName, 80);
+        javax.swing.ImageIcon standing = WalkSprite.standingIcon(picName, characters == boys, 80);
         g.drawImage(standing != null ? standing.getImage() : new javax.swing.ImageIcon(
                 getClass().getResource("/images/avatar/" + folder() + "/" + picName + ".png")).getImage(), 10, 10, 80, 80, null);
         g.dispose();

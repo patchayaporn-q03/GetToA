@@ -6,8 +6,8 @@ import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 
 /**
- * แอนิเมชันเดินของตัวละครที่เลือก ตัดจาก sprite sheet ใน images/avatar/animation
- * (3 คอลัมน์ x 4 แถว: แถว 0 = หันหน้า, 1 = หันซ้าย, 2 = หันขวา, 3 = หันหลัง
+ * แอนิเมชันเดินของตัวละครที่เลือก ตัดจาก sprite sheet ใน images/avatar/animation (หญิง) และ animationboy/standyboy (ชาย)
+ * (3 คอลัมน์ x 4 แถว: หญิงแถว 0-3 = หน้า/ซ้าย/ขวา/หลัง ชายแถว 0-3 = หลัง/ซ้าย/หน้า/ขวา
  * คอลัมน์ 0 = ยืน, คอลัมน์ 1-2 = ก้าวเท้า)
  */
 public class WalkSprite {
@@ -20,10 +20,21 @@ public class WalkSprite {
     private static final int UP = 3;
 
     // ลำดับเฟรมตอนเดิน (คอลัมน์ในแถว)
-    private static final int[] CYCLE = {1, 0, 2, 0};
+    // หญิง: คอลัมน์ 0 = ยืนตรง ชาย: คอลัมน์ 1 = ท่ากลาง (คอลัมน์ 0 และ 2 เป็นท่าก้าวเท้าทั้งคู่)
+    private static final int[] FEMALE_CYCLE = {1, 0, 2, 0};
+    private static final int[] MALE_CYCLE = {0, 1, 2, 1};
+    private static final int FEMALE_IDLE = 0;
+    private static final int MALE_IDLE = 1;
+
+    private final int[] cycle;
+    private final int idleCol;
 
     // จำนวนรอบของ timer ต่อ 1 เฟรม (timer 16ms)
-    private static final int TICKS_PER_FRAME = 9;
+    // ตัวละครชายก้าวกว้างกว่า จึงสลับเฟรมถี่กว่า เท้าจะได้ไม่ไถลบนพื้น
+    private static final int FEMALE_TICKS_PER_FRAME = 7;
+    private static final int MALE_TICKS_PER_FRAME = 5;
+
+    private final int ticksPerFrame;
 
     // เก็บรูปท่ายืนที่สร้างแล้ว (การตัดภาพจาก sheet ใช้เวลา)
     private static final java.util.Map<String, ImageIcon> STANDING = new java.util.HashMap<>();
@@ -38,7 +49,15 @@ public class WalkSprite {
     // ชิ้นส่วนเล็กกว่านี้ (พิกเซล) ถือว่าเป็นเศษขยะ ไม่ใช่ตัวละคร
     private static final int MIN_PIECE_AREA = 150;
 
-    private WalkSprite(BufferedImage sheet, int size) {
+    // แถวของ sprite sheet ที่เป็นทิศ {DOWN, LEFT, RIGHT, UP} หญิงเรียง หน้า/ซ้าย/ขวา/หลัง ชายเรียง หลัง/ซ้าย/หน้า/ขวา
+    private static final int[] FEMALE_ROWS = {0, 1, 2, 3};
+    private static final int[] MALE_ROWS = {2, 1, 3, 0};
+
+    private WalkSprite(BufferedImage sheet, int size, boolean male) {
+        int[] sheetRows = male ? MALE_ROWS : FEMALE_ROWS;
+        cycle = male ? MALE_CYCLE : FEMALE_CYCLE;
+        idleCol = male ? MALE_IDLE : FEMALE_IDLE;
+        ticksPerFrame = male ? MALE_TICKS_PER_FRAME : FEMALE_TICKS_PER_FRAME;
         int sw = sheet.getWidth();
         int sh = sheet.getHeight();
         int cw = sw / COLS;
@@ -139,13 +158,16 @@ public class WalkSprite {
                         int p = (minY[k] + y) * sw + (minX[k] + x);
                         if (cellOf[p] == k) {
                             cell.setRGB(x, y, argb[p]);
-                            sumX += x;
-                            count++;
+                            // วัดกึ่งกลางจากส่วนบน (หัวและลำตัว) เท่านั้น ขาจะได้ขยับได้อิสระ
+                            if (y < bh / 2) {
+                                sumX += x;
+                                count++;
+                            }
                         }
                     }
                 }
                 // ให้กึ่งกลางตัวและเท้าอยู่ที่เดิมทุกเฟรม ตัวละครจะไม่สั่นตอนสลับเฟรม
-                double centerX = sumX / count;
+                double centerX = count == 0 ? bw / 2.0 : sumX / count;
                 int dx = (int) Math.round(size / 2.0 - centerX * scale);
                 int dy = (int) Math.round(size - bh * scale);
 
@@ -159,17 +181,21 @@ public class WalkSprite {
                         Math.max(1, (int) Math.round(bh * scale)), null);
                 g.dispose();
             }
-            frames[k / COLS][k % COLS] = new ImageIcon(out);
+            for (int dir = 0; dir < ROWS; dir++) {
+                if (sheetRows[dir] == k / COLS) {
+                    frames[dir][k % COLS] = new ImageIcon(out);
+                }
+            }
         }
     }
 
     // รูปท่ายืนตรง (หันหน้า) ของตัวละครตามชื่อรูป ใช้ในหน้าเลือกตัวละคร ให้ตรงกับตัวที่เดินในเกม
     // คืน null ถ้าตัวละครนั้นไม่มี sheet (ผู้เรียกใช้รูป standy เดิมแทน)
-    public static ImageIcon standingIcon(String image, int size) {
-        String key = image + ":" + size;
+    public static ImageIcon standingIcon(String image, boolean male, int size) {
+        String key = (male ? "m:" : "f:") + image + ":" + size;
         if (!STANDING.containsKey(key)) {
-            BufferedImage sheet = com.mycompany.data.CharacterData.loadWalkSheet(image);
-            STANDING.put(key, sheet == null ? null : new WalkSprite(sheet, size).frames[DOWN][0]);
+            BufferedImage sheet = com.mycompany.data.CharacterData.loadWalkSheet(image, male ? "male" : "female");
+            STANDING.put(key, sheet == null ? null : new WalkSprite(sheet, size, male).idle());
         }
         return STANDING.get(key);
     }
@@ -177,12 +203,16 @@ public class WalkSprite {
     // แอนิเมชันของตัวละครที่เลือกล่าสุด หรือ null ถ้าไม่มี sheet ให้ใช้ (เช่น ตัวละครชาย)
     public static WalkSprite forSelected(int size) {
         BufferedImage sheet = com.mycompany.data.CharacterData.loadSelectedWalkSheet();
-        return sheet == null ? null : new WalkSprite(sheet, size);
+        if (sheet == null) {
+            return null;
+        }
+        String[] s = com.mycompany.data.CharacterData.loadSettings();
+        return new WalkSprite(sheet, size, s != null && s[0].trim().equalsIgnoreCase("male"));
     }
 
     public ImageIcon idle() {
         tick = 0;
-        return frames[direction][0];
+        return frames[direction][idleCol];
     }
 
     // เฟรมถัดไปตามทิศที่กำลังเดิน (ตามแนวนอนมาก่อนเมื่อกดทแยง)
@@ -196,7 +226,7 @@ public class WalkSprite {
         } else if (dy > 0) {
             direction = DOWN;
         }
-        int step = (tick++ / TICKS_PER_FRAME) % CYCLE.length;
-        return frames[direction][CYCLE[step]];
+        int step = (tick++ / ticksPerFrame) % cycle.length;
+        return frames[direction][cycle[step]];
     }
 }
