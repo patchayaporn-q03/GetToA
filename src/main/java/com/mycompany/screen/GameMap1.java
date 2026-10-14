@@ -154,9 +154,9 @@ public class GameMap1 extends javax.swing.JPanel {
         //สิ่งกีดขวางบนพื้นไม้ (ครูโต๊ะ ตู้ ต้นไม้ ชั้นหนังสือ)
         area.subtract(rect(528, 215, 122, 45));  // โต๊ะครู
         area.subtract(rect(762, 215, 105, 25));  // ตู้ + ต้นไม้ขวาบน
-        area.subtract(rect(190, 215, 45, 85));   // ต้นไม้/แท่นซ้ายบน
+        area.subtract(rect(180, 215, 45, 85));   // ต้นไม้/แท่นซ้ายบน
         area.subtract(rect(190, 385, 45, 110));  // ตู้เหล็ก + ต้นไม้ซ้าย
-        area.subtract(rect(195, 505, 100, 135)); // ต้นไม้ใหญ่มุมซ้ายล่าง
+        area.subtract(rect(190, 495, 80, 120)); // ต้นไม้ใหญ่มุมซ้ายล่าง
         area.subtract(rect(395, 550, 90, 90));   // ตู้ + ต้นไม้ล่าง
         area.subtract(rect(750, 570, 145, 70));  // ชั้นหนังสือล่างขวา
         area.subtract(rect(852, 540, 43, 40));   // ต้นไม้ล่างขวา

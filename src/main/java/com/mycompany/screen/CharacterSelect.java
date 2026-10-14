@@ -172,7 +172,7 @@ public class CharacterSelect extends javax.swing.JPanel {
 
         editname.setText("");
         editname.setToolTipText("ใส่ชื่อตัวละคร");
-        editname.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, 16));
+        editname.setFont(new java.awt.Font(GameFrame.FONT_NAME, java.awt.Font.BOLD, 16));
         editname.setForeground(brown);
         editname.setCaretColor(brown);
         editname.setSelectionColor(gold);
@@ -347,7 +347,7 @@ public class CharacterSelect extends javax.swing.JPanel {
                 javax.swing.SwingUtilities.getWindowAncestor(this));
         toast.setUndecorated(true);
         javax.swing.JLabel msg = new javax.swing.JLabel("บันทึกตัวละครแล้ว", javax.swing.SwingConstants.CENTER);
-        msg.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 28));
+        msg.setFont(new java.awt.Font(GameFrame.FONT_NAME, java.awt.Font.BOLD, 28));
         msg.setBorder(javax.swing.BorderFactory.createEmptyBorder(24, 48, 24, 48));
         toast.add(msg);
         toast.pack();

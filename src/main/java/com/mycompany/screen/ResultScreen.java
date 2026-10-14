@@ -40,7 +40,7 @@ public class ResultScreen extends javax.swing.JPanel {
     private javax.swing.JLabel addLabel(String text, int x, int y, int w, int h,
             int size, int align, java.awt.Color color) {
         javax.swing.JLabel label = new javax.swing.JLabel(text, align);
-        label.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, size));
+        label.setFont(new java.awt.Font(GameFrame.FONT_NAME, java.awt.Font.BOLD, size));
         label.setForeground(color);
         // index 0 = อยู่หน้ากรอบและพื้นหลัง
         add(label, new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, w, h), 0);
@@ -83,7 +83,7 @@ public class ResultScreen extends javax.swing.JPanel {
 
     private void setupButton(javax.swing.JLabel button, String text, Runnable action) {
         button.setText(text);
-        button.setFont(new java.awt.Font("Tahoma", java.awt.Font.BOLD, 24));
+        button.setFont(new java.awt.Font(GameFrame.FONT_NAME, java.awt.Font.BOLD, 24));
         button.setForeground(java.awt.Color.WHITE);
         button.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         button.setVerticalTextPosition(javax.swing.SwingConstants.CENTER);

@@ -55,12 +55,12 @@ public class LoadingScreen extends JPanel {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
-        g2d.setFont(new Font(Font.MONOSPACED, Font.BOLD, 84));
+        g2d.setFont(new Font(GameFrame.FONT_NAME, Font.BOLD, 84));
         g2d.setColor(Color.BLACK);
         drawCentered(g2d, "Get to A", getHeight() / 2 - 90);
 
         int dots = (elapsed / 400)% 4;
-        g2d.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 24));
+        g2d.setFont(new Font(GameFrame.FONT_NAME, Font.PLAIN, 24));
         g2d.setColor(Color.GRAY);
         drawCentered(g2d, "loading" + ".".repeat(dots), getHeight() / 2 - 40);
 
