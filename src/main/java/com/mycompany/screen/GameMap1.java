@@ -33,7 +33,8 @@ public class GameMap1 extends javax.swing.JPanel {
         refreshPlayerImage();
     }
 
-    //เปลี่ยนรูปผู้เล่นเป็นตัวละครที่เลือกจากหน้าเลือกตัวละคร (ถ้าไม่มีข้อมูล ใช้รูปเดิม)
+    // เปลี่ยนรูปผู้เล่นเป็นตัวละครที่เลือกจากหน้าเลือกตัวละคร (ถ้าไม่มีข้อมูล
+    // ใช้รูปเดิม)
     private void refreshPlayerImage() {
         javax.swing.ImageIcon icon = com.mycompany.data.CharacterData.loadSelectedIcon(PLAYER_SIZE);
         if (icon != null) {
@@ -41,13 +42,15 @@ public class GameMap1 extends javax.swing.JPanel {
         }
     }
 
-    //กล่องสมบัติ 6 กล่อง วางตายตัว: 5 กล่องบนพื้นที่เดินได้ + 1 กล่องบนโต๊ะ (โต๊ะแถวบนขวา)
+    // กล่องสมบัติ 6 กล่อง วางตายตัว: 5 กล่องบนพื้นที่เดินได้ + 1 กล่องบนโต๊ะ
+    // (โต๊ะแถวบนขวา)
     // ระบบกล่องใช้ GradeBox (ตำแหน่ง รูป คะแนน และการเปิดกล่องอยู่ในนั้น)
     private final GradeManager gradeManager = GradeManager.getInstance();
     private final GradeBox gradeBox = new GradeBox(gradeManager);
     private final int BOX_SIZE = gradeBox.getBoxSize();
 
-    // ชิ้นส่วนที่ GradeBox เพิ่มลงแมพ (กล่องและป้าย) เก็บไว้เพื่อลบออกหลังผ่าน puzzle
+    // ชิ้นส่วนที่ GradeBox เพิ่มลงแมพ (กล่องและป้าย) เก็บไว้เพื่อลบออกหลังผ่าน
+    // puzzle
     private final java.util.List<java.awt.Component> boxLabels = new java.util.ArrayList<>();
     private boolean addingBoxes = false;
 
@@ -60,7 +63,8 @@ public class GameMap1 extends javax.swing.JPanel {
         }
     }
 
-    // GradeBox เรียก add(component) โดยไม่มี constraints แต่แมพนี้ใช้ AbsoluteLayout
+    // GradeBox เรียก add(component) โดยไม่มี constraints แต่แมพนี้ใช้
+    // AbsoluteLayout
     // จึงแปลง bounds ของ component เป็น AbsoluteConstraints และวางไว้หน้าพื้นหลัง
     @Override
     protected void addImpl(java.awt.Component comp, Object constraints, int index) {
@@ -76,7 +80,8 @@ public class GameMap1 extends javax.swing.JPanel {
     // กล่องที่เปิดแล้ว (index ตามลำดับตำแหน่งใน GradeBox)
     private final java.util.Set<Integer> openedIndexes = new java.util.HashSet<>();
 
-    // หากล่องที่ยังไม่เปิดและใกล้ผู้เล่นที่สุด ใช้หลักเดียวกับ GradeBox เพื่อให้ตรงกับกล่องที่ GradeBox เปิดจริง
+    // หากล่องที่ยังไม่เปิดและใกล้ผู้เล่นที่สุด ใช้หลักเดียวกับ GradeBox
+    // เพื่อให้ตรงกับกล่องที่ GradeBox เปิดจริง
     private int nearestClosedBoxIndex() {
         int[][] pos = gradeBox.getAllBoxPositions();
         int px = player.getX() + player.getWidth() / 2;
@@ -123,51 +128,51 @@ public class GameMap1 extends javax.swing.JPanel {
     private static final int PLAYER_SIZE = 60;
     private static final int PLAYER_SPEED = 4;
 
-    //จุดเกิด: ใต้ประตูขวาบน (ให้เท้าตัวละครอยู่บนพื้น)
+    // จุดเกิด: ใต้ประตูขวาบน (ให้เท้าตัวละครอยู่บนพื้น)
     private static final int SPAWN_X = 975;
     private static final int SPAWN_Y = 190;
 
-    //ตำแหน่งหนังสือ
+    // ตำแหน่งหนังสือ
     private static final int BOOK_X = 560;
     private static final int BOOK_Y = 390;
     private static final int BOOK_SIZE = 20;
 
-    //กล่องชนอยู่ที่เท้าของตัวละคร
+    // กล่องชนอยู่ที่เท้าของตัวละคร
     private static final int HIT_X = 15;
     private static final int HIT_Y = 40;
     private static final int HIT_W = 30;
     private static final int HIT_H = 16;
 
-    //พื้นที่เดินได้ = พื้นไม้ + โถงกระเบื้องขวา + ช่องเชื่อม แล้วหักสิ่งกีดขวางออก
+    // พื้นที่เดินได้ = พื้นไม้ + โถงกระเบื้องขวา + ช่องเชื่อม แล้วหักสิ่งกีดขวางออก
     private java.awt.geom.Area walkable;
 
     private java.awt.geom.Area buildWalkableArea(boolean withBoxes) {
         java.awt.geom.Area area = new java.awt.geom.Area();
-        //พื้นไม้ห้องเรียน
+        // พื้นไม้ห้องเรียน
         area.add(rect(195, 215, 700, 417));
-        //โถงกระเบื้องมุมขวาบน (ใต้ประตู)
-        area.add(rect(915, 228, 160, 124));   // ส่วนบน
-        area.add(rect(948, 352, 127, 48));    // ส่วนกลาง
-        area.add(rect(948, 400, 172, 135));   // ส่วนล่าง
-        //ช่องเชื่อมพื้นไม้กับโถง (ผนังบางๆ ที่ x≈900-910 ถูกเจาะเป็นทางเดิน)
+        // โถงกระเบื้องมุมขวาบน (ใต้ประตู)
+        area.add(rect(915, 228, 160, 124)); // ส่วนบน
+        area.add(rect(948, 352, 127, 48)); // ส่วนกลาง
+        area.add(rect(948, 400, 172, 135)); // ส่วนล่าง
+        // ช่องเชื่อมพื้นไม้กับโถง (ผนังบางๆ ที่ x≈900-910 ถูกเจาะเป็นทางเดิน)
         area.add(rect(890, 235, 30, 75));
 
-        //สิ่งกีดขวางบนพื้นไม้ (ครูโต๊ะ ตู้ ต้นไม้ ชั้นหนังสือ)
-        area.subtract(rect(528, 215, 122, 45));  // โต๊ะครู
-        area.subtract(rect(762, 215, 105, 25));  // ตู้ + ต้นไม้ขวาบน
-        area.subtract(rect(190, 215, 45, 85));   // ต้นไม้/แท่นซ้ายบน
-        area.subtract(rect(190, 385, 45, 110));  // ตู้เหล็ก + ต้นไม้ซ้าย
-        area.subtract(rect(195, 505, 100, 135)); // ต้นไม้ใหญ่มุมซ้ายล่าง
-        area.subtract(rect(395, 550, 90, 90));   // ตู้ + ต้นไม้ล่าง
-        area.subtract(rect(750, 570, 145, 70));  // ชั้นหนังสือล่างขวา
-        area.subtract(rect(852, 540, 43, 40));   // ต้นไม้ล่างขวา
-        area.subtract(rect(893, 500, 30, 60));   // ต้นไม้ขวา
-        area.subtract(rect(893, 380, 35, 95));   // ตู้ขวา
+        // สิ่งกีดขวางบนพื้นไม้ (ครูโต๊ะ ตู้ ต้นไม้ ชั้นหนังสือ)
+        area.subtract(rect(528, 215, 122, 45)); // โต๊ะครู
+        area.subtract(rect(762, 215, 105, 25)); // ตู้ + ต้นไม้ขวาบน
+        area.subtract(rect(180, 215, 45, 85)); // ต้นไม้/แท่นซ้ายบน
+        area.subtract(rect(190, 385, 45, 110)); // ตู้เหล็ก + ต้นไม้ซ้าย
+        area.subtract(rect(190, 495, 80, 120)); // ต้นไม้ใหญ่มุมซ้ายล่าง
+        area.subtract(rect(395, 550, 90, 90)); // ตู้ + ต้นไม้ล่าง
+        area.subtract(rect(750, 570, 145, 70)); // ชั้นหนังสือล่างขวา
+        area.subtract(rect(852, 540, 43, 40)); // ต้นไม้ล่างขวา
+        area.subtract(rect(893, 500, 30, 60)); // ต้นไม้ขวา
+        area.subtract(rect(893, 380, 35, 95)); // ตู้ขวา
         // สิ่งกีดขวางในโถงกระเบื้อง
-        area.subtract(rect(940, 435, 40, 80));   // ถังขยะ
+        area.subtract(rect(940, 435, 40, 80)); // ถังขยะ
         // โต๊ะ เดินได้เฉพาะทางเดินระหว่างโต๊ะ
-        for (int tx : new int[] {390, 540, 690}) {
-            for (int ty : new int[] {300, 390, 480}) {
+        for (int tx : new int[] { 390, 540, 690 }) {
+            for (int ty : new int[] { 300, 390, 480 }) {
                 area.subtract(rect(tx, ty, 60, 60));
             }
         }
@@ -188,7 +193,7 @@ public class GameMap1 extends javax.swing.JPanel {
         return walkable.contains(new java.awt.Rectangle(x + HIT_X, y + HIT_Y, HIT_W, HIT_H));
     }
 
-    //ปุ่มกลับหน้าหลัก
+    // ปุ่มกลับหน้าหลัก
     private void setupBackButton() {
         int w = 161;
         int h = 56;
@@ -223,9 +228,11 @@ public class GameMap1 extends javax.swing.JPanel {
     private javax.swing.Timer moveTimer;
     private final java.util.Set<String> heldKeys = new java.util.HashSet<>();
 
-    //ตัวละครเดินด้วย W A S D (กดค้างเพื่อเดินต่อเนื่อง, กดสองปุ่มพร้อมกันเดินทแยงได้)
+    // ตัวละครเดินด้วย W A S D (กดค้างเพื่อเดินต่อเนื่อง,
+    // กดสองปุ่มพร้อมกันเดินทแยงได้)
     private void setupPlayer() {
-        // ตัวละครเริ่มต้นคือ pikachu.gif (ย่อให้พอดี PLAYER_SIZE) ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
+        // ตัวละครเริ่มต้นคือ pikachu.gif (ย่อให้พอดี PLAYER_SIZE)
+        // ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
         java.awt.Image src = new javax.swing.ImageIcon(getClass().getResource(
                 "/com/mycompany/puzzle/assets/character/pikachu.gif")).getImage();
         player = new javax.swing.JLabel(new javax.swing.ImageIcon(
@@ -267,7 +274,7 @@ public class GameMap1 extends javax.swing.JPanel {
                 }
             }
         });
-        for (String k : new String[] {"W", "A", "S", "D"}) {
+        for (String k : new String[] { "W", "A", "S", "D" }) {
             in.put(javax.swing.KeyStroke.getKeyStroke("pressed " + k), "press" + k);
             in.put(javax.swing.KeyStroke.getKeyStroke("released " + k), "release" + k);
             act.put("press" + k, new javax.swing.AbstractAction() {
@@ -292,10 +299,14 @@ public class GameMap1 extends javax.swing.JPanel {
             }
             int dx = 0;
             int dy = 0;
-            if (heldKeys.contains("A")) dx -= PLAYER_SPEED;
-            if (heldKeys.contains("D")) dx += PLAYER_SPEED;
-            if (heldKeys.contains("W")) dy -= PLAYER_SPEED;
-            if (heldKeys.contains("S")) dy += PLAYER_SPEED;
+            if (heldKeys.contains("A"))
+                dx -= PLAYER_SPEED;
+            if (heldKeys.contains("D"))
+                dx += PLAYER_SPEED;
+            if (heldKeys.contains("W"))
+                dy -= PLAYER_SPEED;
+            if (heldKeys.contains("S"))
+                dy += PLAYER_SPEED;
 
             int x = player.getX();
             int y = player.getY();
@@ -343,8 +354,7 @@ public class GameMap1 extends javax.swing.JPanel {
                 javax.swing.SwingUtilities.getWindowAncestor(this), "Puzzle Station",
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
-        com.mycompany.puzzle.PuzzleStation station =
-                new com.mycompany.puzzle.PuzzleStation(dialog::dispose);
+        com.mycompany.puzzle.PuzzleStation station = new com.mycompany.puzzle.PuzzleStation(dialog::dispose);
         dialog.add(station);
         // เต็มจอ: ใช้ขนาดหน้าจอที่หน้าต่างเกมอยู่
         dialog.setBounds(getGraphicsConfiguration().getBounds());
@@ -358,7 +368,8 @@ public class GameMap1 extends javax.swing.JPanel {
         }
     }
 
-    //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ กล่องยังอยู่ให้เปิดต่อได้จนกว่าจะออกประตู
+    // เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่
+    // กล่องยังอยู่ให้เปิดต่อได้จนกว่าจะออกประตู
     private void applyPassedMap() {
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/map1/map1-pass.png")));
         walkable.add(rect(955, 130, 100, 100)); // เปิดทางเดินไปที่ประตู
@@ -367,9 +378,9 @@ public class GameMap1 extends javax.swing.JPanel {
         repaint();
     }
 
-
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         book = new javax.swing.JLabel();
@@ -431,7 +442,6 @@ public class GameMap1 extends javax.swing.JPanel {
         jLabel1.setText("jLabel1");
         add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1280, 720));
     }// </editor-fold>//GEN-END:initComponents
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel book;
