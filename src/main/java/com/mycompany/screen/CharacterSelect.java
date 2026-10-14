@@ -66,6 +66,11 @@ public class CharacterSelect extends javax.swing.JPanel {
     }
 
     private javax.swing.ImageIcon loadPic(String name, int size) {
+        // ใช้ท่ายืนตรงจากแอนิเมชัน (ตัวเดียวกับที่เดินในเกม) ถ้าไม่มีใช้รูป standy เดิม
+        javax.swing.ImageIcon standing = WalkSprite.standingIcon(name, size);
+        if (standing != null) {
+            return standing;
+        }
         java.awt.Image img = new javax.swing.ImageIcon(
                 getClass().getResource("/images/avatar/" + folder() + "/" + name + ".png")).getImage();
         return new javax.swing.ImageIcon(img.getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
@@ -128,7 +133,8 @@ public class CharacterSelect extends javax.swing.JPanel {
                 java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g.drawImage(new javax.swing.ImageIcon(
                 getClass().getResource("/images/charecter/" + frameName + ".png")).getImage(), 0, 0, 100, 100, null);
-        g.drawImage(new javax.swing.ImageIcon(
+        javax.swing.ImageIcon standing = WalkSprite.standingIcon(picName, 80);
+        g.drawImage(standing != null ? standing.getImage() : new javax.swing.ImageIcon(
                 getClass().getResource("/images/avatar/" + folder() + "/" + picName + ".png")).getImage(), 10, 10, 80, 80, null);
         g.dispose();
         return new javax.swing.ImageIcon(img);
@@ -334,14 +340,22 @@ public class CharacterSelect extends javax.swing.JPanel {
         add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1280, 720));
     }// </editor-fold>//GEN-END:initComponents
 
+    // บันทึกตัวละครที่เลือกอยู่บนหน้านี้และชื่อที่ผู้เล่นแก้ลง Data/settings.csv
+    // (เรียกตอนกด confirm และตอนกด Play เพื่อให้ตัวละครในเกมตรงกับที่เลือกเสมอ)
+    public void saveCurrentSelection() {
+        if (characters.isEmpty()) {
+            return;
+        }
+        com.mycompany.data.CharacterData chosen = characters.get(selectedIndex);
+        String playerName = editname.getText().isBlank() ? chosen.getName() : editname.getText();
+        com.mycompany.data.CharacterData.saveSettings(chosen.getId(), chosen.getGender(), playerName);
+    }
+
     private void confirm(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirm
         //button yes แสดงข้อความ 1 วินาทีแล้วกลับหน้าเมนู
         confirm.setEnabled(false);
 
-        //บันทึกตัวละครที่เลือกและชื่อที่ผู้เล่นแก้ลง Data/settings.csv
-        com.mycompany.data.CharacterData chosen = characters.get(selectedIndex);
-        String playerName = editname.getText().isBlank() ? chosen.getName() : editname.getText();
-        com.mycompany.data.CharacterData.saveSettings(chosen.getId(), chosen.getGender(), playerName);
+        saveCurrentSelection();
 
         javax.swing.JDialog toast = new javax.swing.JDialog(
                 javax.swing.SwingUtilities.getWindowAncestor(this));

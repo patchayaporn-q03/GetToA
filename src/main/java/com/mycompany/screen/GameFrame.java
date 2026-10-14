@@ -5,6 +5,7 @@
 package com.mycompany.screen;
 
 import com.mycompany.grade.GradeManager;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -25,6 +26,7 @@ public class GameFrame {
     private static CardLayout cardLayout;
     private static JPanel cards;
     private static ResultScreen resultScreen;
+    private static CharacterSelect characterSelect;
     private static GameMap1 map1;
     private static GameMap2 map2;
 
@@ -37,9 +39,10 @@ public class GameFrame {
             cardLayout = new CardLayout();
             cards = new JPanel(cardLayout);
 
-            cards.add(new LoadingScreen(), "loading");
+            //cards.add(new LoadingScreen(), "loading");
             cards.add(new MainMenuScreen(), "mainmenu");
-            cards.add(new CharacterSelect(), "avatar");
+            characterSelect = new CharacterSelect();
+            cards.add(characterSelect, "avatar");
             map1 = new GameMap1();
             map2 = new GameMap2();
             cards.add(map1, "map1");
@@ -71,6 +74,8 @@ public class GameFrame {
 
     // เริ่มเกมใหม่: ล้างคะแนนทั้งหมด และสร้างแมพ 1/2 ใหม่ (กล่อง ประตู และตำแหน่งผู้เล่นกลับเป็นค่าเริ่มต้น)
     public static void startNewGame() {
+        // บันทึกตัวละครที่เลือกบนหน้าเลือกตัวละคร เพื่อให้แมพใช้ตัวละครตรงกัน
+        characterSelect.saveCurrentSelection();
         GradeManager.getInstance().reset();
         //com.mycompany.puzzle.PuzzleScore.reset();
         //com.mycompany.puzzle.saifai.WiringTask.reset();

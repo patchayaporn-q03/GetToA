@@ -31,8 +31,16 @@ public class GameMap2 extends javax.swing.JPanel {
         refreshPlayerImage();
     }
 
+    // แอนิเมชันเดินของตัวละครที่เลือก (null = ไม่มี sheet ใช้รูปนิ่งแทน)
+    private WalkSprite walkSprite;
+
     //เปลี่ยนรูปผู้เล่นเป็นตัวละครที่เลือกจากหน้าเลือกตัวละคร (ถ้าไม่มีข้อมูล ใช้รูปเดิม)
     private void refreshPlayerImage() {
+        walkSprite = WalkSprite.forSelected(PLAYER_SIZE);
+        if (walkSprite != null) {
+            player.setIcon(walkSprite.idle());
+            return;
+        }
         javax.swing.ImageIcon icon = com.mycompany.data.CharacterData.loadSelectedIcon(PLAYER_SIZE);
         if (icon != null) {
             player.setIcon(icon);
@@ -176,7 +184,7 @@ public class GameMap2 extends javax.swing.JPanel {
     }
 
     private static final int PLAYER_SIZE = 60;
-    private static final int PLAYER_SPEED = 4;
+    private static final int PLAYER_SPEED = 2;
 
     //จุดเกิด: ยืนอยู่ที่ประตูล่าง (ประตูคู่กลางด้านล่างของแมพ)
     private static final int SPAWN_X = 585;
@@ -299,6 +307,9 @@ public class GameMap2 extends javax.swing.JPanel {
 
         moveTimer = new javax.swing.Timer(16, e -> {
             if (heldKeys.isEmpty()) {
+                if (walkSprite != null) {
+                    player.setIcon(walkSprite.idle());
+                }
                 moveTimer.stop();
                 return;
             }
@@ -318,6 +329,9 @@ public class GameMap2 extends javax.swing.JPanel {
                 y += dy;
             }
             player.setLocation(x, y);
+            if (walkSprite != null) {
+                player.setIcon(walkSprite.walk(dx, dy));
+            }
 
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
