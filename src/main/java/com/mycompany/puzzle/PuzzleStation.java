@@ -42,7 +42,9 @@ public class PuzzleStation extends JPanel implements KeyListener {
         character = new Character(map.getStartX(), map.getStartY());
         player = new Player(character);
         // ใช้ตัวละครที่เลือกจากหน้าเลือกตัวละคร ถ้าไม่มีข้อมูลใช้รูปเดิม
-        ImageIcon selected = com.mycompany.data.CharacterData.loadSelectedIcon(character.getWidth());
+        com.mycompany.screen.WalkSprite sprite = com.mycompany.screen.WalkSprite.forSelected(character.getWidth());
+        ImageIcon selected = sprite != null ? sprite.idle()
+                : com.mycompany.data.CharacterData.loadSelectedIcon(character.getWidth());
         playerImage = selected != null ? selected.getImage()
                 : new ImageIcon(getClass().getResource("/images/girl.png")).getImage();
 
