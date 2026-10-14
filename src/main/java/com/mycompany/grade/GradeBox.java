@@ -325,15 +325,21 @@ public class GradeBox {
         }
 
         // เก็บคะแนนดิบไว้ก่อน เพื่อให้กับดักหักคะแนนได้ถูกต้อง
-        if (gradeManager != null) {
-            gradeManager.addBoxScore(score);
-        } else {
-            boxScore += score;
-        }
+        boxScore += score;
+
+        // GradeManager เก็บเฉพาะคะแนนกล่องของแมพที่เล่นอยู่ ไม่สะสมข้ามแมพ
+        syncManager();
 
         openedBoxCount++;
 
         return true;
+    }
+
+    // ตั้งคะแนนกล่องของ GradeManager ให้เป็นคะแนนของแมพนี้ (เรียกตอนเข้าแมพและตอนเปิดกล่อง)
+    public void syncManager() {
+        if (gradeManager != null) {
+            gradeManager.setBoxScore(boxScore);
+        }
     }
 
     public int getOpenedBoxCount() {
@@ -344,13 +350,8 @@ public class GradeBox {
         return openedBoxCount >= 3;
     }
 
-    // คะแนนที่แสดงต้องอยู่ระหว่าง 0 ถึง 30
+    // คะแนนกล่องของแมพนี้เท่านั้น (เริ่มที่ 0 ทุกแมพ) อยู่ระหว่าง 0 ถึง 30
     public int getBoxScore() {
-
-        int score = gradeManager != null
-                ? gradeManager.getBoxScore()
-                : boxScore;
-
-        return Math.max(0, Math.min(score, MAX_SCORE));
+        return Math.max(0, Math.min(boxScore, MAX_SCORE));
     }
 }
