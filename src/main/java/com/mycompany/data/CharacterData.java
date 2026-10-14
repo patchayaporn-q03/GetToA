@@ -156,7 +156,7 @@ public class CharacterData {
             int id = Integer.parseInt(s[1].trim());
             for (CharacterData c : load(s[0].trim())) {
                 if (c.getId() == id) {
-                    return loadWalkSheet(c.getImage());
+                    return loadWalkSheet(c.getImage(), c.getGender());
                 }
             }
         } catch (NumberFormatException e) {
@@ -165,11 +165,20 @@ public class CharacterData {
         return null;
     }
 
-    // sprite sheet เดินของตัวละครตามชื่อรูป คืน null ถ้าไม่มีไฟล์
-    public static java.awt.image.BufferedImage loadWalkSheet(String image) {
+    // sprite sheet เดินของตัวละครตามชื่อรูปและเพศ คืน null ถ้าไม่มีไฟล์
+    // หญิง: images/avatar/animation  ชาย: images/avatar/animationboy (ถ้าไม่มี ใช้ images/avatar/standyboy)
+    public static java.awt.image.BufferedImage loadWalkSheet(String image, String gender) {
         try {
-            java.net.URL url = CharacterData.class.getResource(
-                    "/images/avatar/animation/" + image + "_walk.png");
+            String file = image + "_walk.png";
+            java.net.URL url;
+            if ("male".equalsIgnoreCase(gender)) {
+                url = CharacterData.class.getResource("/images/avatar/animationboy/" + file);
+                if (url == null) {
+                    url = CharacterData.class.getResource("/images/avatar/standyboy/" + file);
+                }
+            } else {
+                url = CharacterData.class.getResource("/images/avatar/animation/" + file);
+            }
             return url == null ? null : javax.imageio.ImageIO.read(url);
         } catch (IOException e) {
             e.printStackTrace();
