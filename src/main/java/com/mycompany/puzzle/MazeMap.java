@@ -15,7 +15,7 @@ public class MazeMap {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
 
-    private static final String MAP_PATH = "/com/mycompany/puzzle/assets/map/map.png";
+    private static final String MAP_PATH = "/com/mycompany/puzzle/assets/map/map-ver2.png";
 
     // ระยะที่ย่อ hitbox เข้าจากขอบตัวละคร (ให้เดินผ่านทางแคบได้)
     private static final int HITBOX_INSET = 6;
