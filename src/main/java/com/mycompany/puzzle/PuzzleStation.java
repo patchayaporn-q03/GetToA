@@ -41,16 +41,17 @@ public class PuzzleStation extends JPanel implements KeyListener {
         map = new MazeMap();
         character = new Character(map.getStartX(), map.getStartY());
         player = new Player(character);
-        playerImage = new ImageIcon(
-                getClass().getResource("/images/girl.png")
-        ).getImage();
+        // ใช้ตัวละครที่เลือกจากหน้าเลือกตัวละคร ถ้าไม่มีข้อมูลใช้รูปเดิม
+        ImageIcon selected = com.mycompany.data.CharacterData.loadSelectedIcon(character.getWidth());
+        playerImage = selected != null ? selected.getImage()
+                : new ImageIcon(getClass().getResource("/images/girl.png")).getImage();
 
         startTime = System.currentTimeMillis();
         timer = new Timer(16, e -> gameUpdate());
 
         // ปุ่มปิด popup (ไม่รับ focus เพื่อให้ปุ่ม WASD ยังทำงาน)
         JButton close = new JButton("ปิด");
-        close.setFont(new Font("Tahoma", Font.BOLD, 14));
+        close.setFont(new Font(com.mycompany.screen.GameFrame.FONT_NAME, Font.BOLD, 14));
         close.setFocusable(false);
         close.setSize(70, 30);
         close.addActionListener(e -> {
@@ -149,21 +150,21 @@ public class PuzzleStation extends JPanel implements KeyListener {
         double time = elapsedSeconds();
 
         g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.setFont(new Font(com.mycompany.screen.GameFrame.FONT_NAME, Font.BOLD, 16));
         g.drawString("W A S D = Move", 30, 30);
-        g.drawString(String.format("Time : %.1f sec", time), 750, 30);
+        g.drawString(String.format("Time : %.1f sec", time), 1050, 30);
 
         if (complete) {
             g.setColor(new Color(0, 0, 0, 180));
-            g.fillRect(250, 250, 460, 150);
+            g.fillRect(410, 285, 460, 150);
 
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 30));
-            g.drawString("PUZZLE COMPLETE!", 325, 300);
+            g.setFont(new Font(com.mycompany.screen.GameFrame.FONT_NAME, Font.BOLD, 30));
+            g.drawString("PUZZLE COMPLETE!", 485, 335);
 
-            g.setFont(new Font("Arial", Font.PLAIN, 20));
-            g.drawString(String.format("Time : %.1f seconds", time), 390, 340);
-            g.drawString("Score : " + PuzzleScore.getPuzzleScore(), 430, 375);
+            g.setFont(new Font(com.mycompany.screen.GameFrame.FONT_NAME, Font.PLAIN, 20));
+            g.drawString(String.format("Time : %.1f seconds", time), 550, 375);
+            g.drawString("Score : " + PuzzleScore.getPuzzleScore(), 590, 410);
         }
     }
 
