@@ -16,7 +16,7 @@ public class MazeMap {
     public static final int HEIGHT = 720;
 
     private static final String MAP_PATH =
-            "/com/mycompany/puzzle/assets/map/map.png";
+            "/com/mycompany/puzzle/assets/map.png";
 
     // ลดขนาด hitbox เพื่อไม่ให้ชนขอบตกแต่งง่ายเกินไป
     private static final int HITBOX_INSET = 10;
