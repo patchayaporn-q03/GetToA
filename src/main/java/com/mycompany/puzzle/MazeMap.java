@@ -1,3 +1,4 @@
+
 package com.mycompany.puzzle;
 
 import javax.imageio.ImageIO;
@@ -15,9 +16,8 @@ public class MazeMap {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
 
-    // ไฟล์แผนที่อยู่ที่ assets/map.png (ในโปรเจ็คนี้ไม่มีโฟลเดอร์ assets/map/)
     private static final String MAP_PATH =
-            "/com/mycompany/puzzle/assets/map.png";
+            "/com/mycompany/puzzle/assets/map/map.png";
 
     // ลดขอบ Hitbox เพื่อไม่ให้ติดขอบตกแต่งง่ายเกินไป
     private static final int HITBOX_INSET = 5;
