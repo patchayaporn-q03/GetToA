@@ -151,7 +151,7 @@ public class PuzzleStation extends JPanel implements KeyListener {
 
         double time = elapsedSeconds();
 
-        g.setColor(Color.WHITE);
+        g.setColor(Color.GREEN);
         g.setFont(new Font(com.mycompany.screen.GameFrame.FONT_NAME, Font.BOLD, 16));
         g.drawString(String.format("Time : %.1f sec", time), 1050, 30);
 
