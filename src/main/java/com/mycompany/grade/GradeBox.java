@@ -115,7 +115,7 @@ public class GradeBox {
 
         if (imageURL == null) {
             JOptionPane.showMessageDialog(
-                    map,
+                    javax.swing.SwingUtilities.getWindowAncestor(map),
                     "ไม่พบรูป /images/map1/boxmap1.png");
             return;
         }
@@ -313,7 +313,8 @@ public class GradeBox {
             message += "\nคุณสามารถเลือกหยุดเปิดกล่องได้แล้ว";
         }
 
-        JOptionPane.showMessageDialog(map, message);
+        // ใช้หน้าต่างเกมเป็น parent เพื่อให้ popup อยู่กลางจอเสมอ (พิกัดของ map ไม่ตรงเมื่อหน้าต่างถูกสเกล)
+        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(map), message);
 
         return true;
     }
