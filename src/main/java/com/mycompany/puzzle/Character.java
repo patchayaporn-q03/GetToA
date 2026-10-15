@@ -8,7 +8,7 @@ public class Character {
     private int y;
     private int width = 30;
     private int height = 30;
-    private int speed = 3;
+    private int speed = 2;
 
     public Character(int x, int y) {
         this.x = x;
