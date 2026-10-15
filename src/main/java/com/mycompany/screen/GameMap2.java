@@ -221,6 +221,23 @@ public class GameMap2 extends javax.swing.JPanel {
 
     private boolean wiringDone = false;
 
+    // หลังสรุปผลแล้วกล่องหายไปและเปิดไม่ได้อีก
+    private boolean boxesRemoved = false;
+
+    private void removeBoxes() {
+        boxesRemoved = true;
+        for (java.awt.Component c : boxLabels) {
+            remove(c);
+        }
+        boxLabels.clear();
+        // กล่องหายแล้ว จึงเดินผ่านตำแหน่งเดิมได้
+        for (int[] p : gradeBox.getFloorBoxPositions()) {
+            walkable.add(new java.awt.geom.Area(new java.awt.Rectangle(p[0], p[1], BOX_SIZE, BOX_SIZE)));
+        }
+        revalidate();
+        repaint();
+    }
+
     // เปิด WiringTask ใน popup ต่อสายครบแล้วไปหน้าสรุปคะแนน (กด Esc เพื่อปิดโดยไม่เล่นจบ)
     private void openWiringTask() {
         if (wiringDone) {
@@ -237,6 +254,7 @@ public class GameMap2 extends javax.swing.JPanel {
         heldKeys.clear();
         if (com.mycompany.puzzle.saifai.WiringTask.isPlayed()) {
             wiringDone = true;
+            removeBoxes();
             GameFrame.showResult("mainmenu", "หน้าหลัก");
         }
     }
@@ -276,7 +294,7 @@ public class GameMap2 extends javax.swing.JPanel {
                 moveTimer.stop();
                 if (isNearPlate()) {
                     openWiringTask();
-                } else {
+                } else if (!boxesRemoved) {
                     int target = nearestClosedBoxIndex();
                     if (gradeBox.openNearestBox(GameMap2.this, player) && target >= 0) {
                         openedIndexes.add(target);
@@ -284,7 +302,9 @@ public class GameMap2 extends javax.swing.JPanel {
                     }
                 }
                 heldKeys.clear();
-                gradeBox.updatePrompts(player);
+                if (!boxesRemoved) {
+                    gradeBox.updatePrompts(player);
+                }
             }
         });
         for (String k : new String[] {"W", "A", "S", "D"}) {
@@ -336,7 +356,9 @@ public class GameMap2 extends javax.swing.JPanel {
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
             prompt.setVisible(isNearPlate());
-            gradeBox.updatePrompts(player);
+            if (!boxesRemoved) {
+                gradeBox.updatePrompts(player);
+            }
         });
         gradeBox.updatePrompts(player);
     }

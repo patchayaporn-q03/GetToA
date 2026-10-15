@@ -126,6 +126,23 @@ public class GameMap1 extends javax.swing.JPanel {
         }
     }
 
+    // หลังสรุปผลแล้วกล่องหายไปและเปิดไม่ได้อีก
+    private boolean boxesRemoved = false;
+
+    private void removeBoxes() {
+        boxesRemoved = true;
+        for (java.awt.Component c : boxLabels) {
+            remove(c);
+        }
+        boxLabels.clear();
+        // กล่องหายแล้ว จึงเดินผ่านตำแหน่งเดิมได้
+        for (int[] p : gradeBox.getFloorBoxPositions()) {
+            walkable.add(rect(p[0], p[1], BOX_SIZE, BOX_SIZE));
+        }
+        revalidate();
+        repaint();
+    }
+
     private boolean doorOpen = false;
 
     private static final int PLAYER_SIZE = 60;
@@ -262,7 +279,7 @@ public class GameMap1 extends javax.swing.JPanel {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 if (!doorOpen && isNearBook()) {
                     openPuzzleStation();
-                } else {
+                } else if (!boxesRemoved) {
                     heldKeys.clear();
                     moveTimer.stop();
                     int target = nearestClosedBoxIndex();
@@ -324,7 +341,9 @@ public class GameMap1 extends javax.swing.JPanel {
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
             prompt.setVisible(!doorOpen && isNearBook());
-            gradeBox.updatePrompts(player);
+            if (!boxesRemoved) {
+                gradeBox.updatePrompts(player);
+            }
 
             // เดินถึงประตู (ที่เปิดหลังผ่าน puzzle) แล้วย้ายไป GameMap2
             if (doorOpen && y + HIT_Y <= 160) {
@@ -368,6 +387,7 @@ public class GameMap1 extends javax.swing.JPanel {
         // ผู้เล่นปิด popup หลังเล่นจบแล้ว ค่อยเปลี่ยนแมพ
         if (station.isComplete()) {
             applyPassedMap();
+            removeBoxes();
             // จบแมพ 1 ไปหน้าสรุปคะแนนก่อน กดปุ่มแล้วกลับมาเดินออกประตูไปแมพ 2
             GameFrame.showResult("map1", "เล่นแมพ 2");
         }
