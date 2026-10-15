@@ -25,9 +25,18 @@ public class GameResult {
     }
 
     // รวมคะแนนจากทุกแมพ ณ ตอนนี้ แล้วคำนวณเกรดด้วย GradeManager
+    // แมพ 2: สรุปเฉพาะคะแนน WiringTask + กล่องของแมพ 2 ไม่รวมคะแนน puzzle แมพ 1
+    private static boolean map2Mode = false;
+
+    public static void setMap2Mode(boolean on) {
+        map2Mode = on;
+    }
+
     public static GameResult current() {
         GradeManager manager = GradeManager.getInstance();
-        manager.setPuzzleScore(PuzzleScore.getPuzzleScore());
+        manager.setPuzzleScore(map2Mode
+                ? com.mycompany.puzzle.saifai.WiringTask.getPuzzleScore()
+                : PuzzleScore.getPuzzleScore());
         return new GameResult(
                 manager.getPuzzleScore(),
                 manager.getBoxScore(),
