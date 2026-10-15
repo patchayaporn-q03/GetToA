@@ -133,12 +133,14 @@ public class GameMap2 extends javax.swing.JPanel {
 
     // เปลี่ยนรูปกล่องที่เปิดแล้วให้เป็นกล่องใสๆ
     private void makeBoxTransparent(int index) {
-        int[] p = gradeBox.getAllBoxPositions()[index];
+        // boxLabels เก็บป้าย E (ไม่มีรูป) สลับกับกล่อง (มีรูป) ตามลำดับตำแหน่ง
+        // จึงนับเฉพาะป้ายที่มีรูปเพื่อหากล่องลำดับที่ index (รวมกล่องบนโต๊ะ ที่คงอยู่ที่เดิม)
+        int n = 0;
         for (java.awt.Component c : boxLabels) {
-            if (c instanceof javax.swing.JLabel label
-                    && label.getIcon() != null
-                    && label.getX() == p[0] && label.getY() == p[1]
-                    && label.getWidth() == BOX_SIZE && label.getHeight() == BOX_SIZE) {
+            if (c instanceof javax.swing.JLabel label && label.getIcon() != null) {
+                if (n++ != index) {
+                    continue;
+                }
                 java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
                         BOX_SIZE, BOX_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
                 java.awt.Graphics2D g = img.createGraphics();
@@ -252,13 +254,37 @@ public class GameMap2 extends javax.swing.JPanel {
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
         heldKeys.clear();
+        // กลับมาแมพ 2 แบบเดิม ไฟสว่างขึ้น กล่องยังเปิดได้ จนกว่าจะเดินไปที่ประตู
         if (com.mycompany.puzzle.saifai.WiringTask.isPlayed()) {
             wiringDone = true;
-            removeBoxes();
-            GameFrame.showResult("mainmenu", "หน้าหลัก");
+            com.mycompany.grade.GameResult.setMap2Mode(true);
+            applyPassedMap();
         }
     }
 
+    private boolean doorOpen = false;
+
+    // ประตูทางออกคือประตูคู่ด้านล่างของแมพ (ทางเดินที่ประตู x 550-680)
+    private static final int DOOR_MIN_X = 550;
+    private static final int DOOR_MAX_X = 680;
+    private static final int DOOR_FEET_Y = 620;
+
+    // เปลี่ยนเป็นแมพไฟสว่าง กล่องยังเปิดได้จนกว่าจะเดินไปที่ประตู
+    private void applyPassedMap() {
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/map2/map2-pass.png")));
+        doorOpen = true;
+        prompt.setVisible(false);
+        revalidate();
+        repaint();
+    }
+
+    // เดินถึงประตู: ป๊อบอัพสรุปผลแมพ 2 (WiringTask + กล่องแมพ 2 ไม่รวมแมพ 1)
+    private void showMap2Summary() {
+        heldKeys.clear();
+        moveTimer.stop();
+        removeBoxes();
+        GameFrame.showResult("mainmenu", "หน้าหลัก");
+    }
     private javax.swing.JLabel player;
     private javax.swing.Timer moveTimer;
     private final java.util.Set<String> heldKeys = new java.util.HashSet<>();
@@ -292,7 +318,7 @@ public class GameMap2 extends javax.swing.JPanel {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 heldKeys.clear();
                 moveTimer.stop();
-                if (isNearPlate()) {
+                if (!wiringDone && isNearPlate()) {
                     openWiringTask();
                 } else if (!boxesRemoved) {
                     int target = nearestClosedBoxIndex();
@@ -355,9 +381,13 @@ public class GameMap2 extends javax.swing.JPanel {
 
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
-            prompt.setVisible(isNearPlate());
+            prompt.setVisible(!wiringDone && isNearPlate());
             if (!boxesRemoved) {
                 gradeBox.updatePrompts(player);
+            }
+            int cx = x + PLAYER_SIZE / 2;
+            if (doorOpen && y + HIT_Y >= DOOR_FEET_Y && cx >= DOOR_MIN_X && cx <= DOOR_MAX_X) {
+                showMap2Summary();
             }
         });
         gradeBox.updatePrompts(player);

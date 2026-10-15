@@ -20,8 +20,8 @@ public class GameFrame {
     public static final int SCREEN_W = 1280;
     public static final int SCREEN_H = 720;
 
-    // ฟอนต์ของทั้งโปรเจกต์ ถ้าภาษาไทยเป็นช่องสี่เหลี่ยมให้เปลี่ยนเป็น "Tahoma"
-    public static final String FONT_NAME = "Sarabun";
+    // ฟอนต์ของทั้งโปรเจกต์ ถ้าภาษาไทยเป็นช่องสี่เหลี่ยมให้เปลี่ยนเป็น "Tahoma , Sarabun"
+    public static final String FONT_NAME = "Tahoma";
     private static GradeManager gradeManager = new GradeManager();
     private static CardLayout cardLayout;
     private static JPanel cards;
@@ -78,7 +78,8 @@ public class GameFrame {
         characterSelect.saveCurrentSelection();
         GradeManager.getInstance().reset();
         //com.mycompany.puzzle.PuzzleScore.reset();
-        //com.mycompany.puzzle.saifai.WiringTask.reset();
+        com.mycompany.puzzle.saifai.WiringTask.reset();
+        com.mycompany.grade.GameResult.setMap2Mode(false);
         resultScreen.setNext("mainmenu", "หน้าหลัก");
 
         cards.remove(map1);
@@ -96,6 +97,14 @@ public class GameFrame {
 
     // อัปเดตคะแนนและเกรดบนหน้าผลลัพธ์ แล้วสลับไปแสดง
     public static void showResult() {
+        resultScreen.refresh();
+        switchTo("result");
+    }
+
+    // แสดงหน้าสรุป พร้อมตั้งทั้งปุ่มเขียวและปุ่มแดง
+    public static void showResult(String nextCard, String nextText, String altCard, String altText) {
+        resultScreen.setNext(nextCard, nextText);
+        resultScreen.setAlt(altCard, altText);
         resultScreen.refresh();
         switchTo("result");
     }

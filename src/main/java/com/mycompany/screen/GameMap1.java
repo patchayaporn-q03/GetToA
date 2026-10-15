@@ -347,9 +347,7 @@ public class GameMap1 extends javax.swing.JPanel {
 
             // เดินถึงประตู (ที่เปิดหลังผ่าน puzzle) แล้วย้ายไป GameMap2
             if (doorOpen && y + HIT_Y <= 160) {
-                heldKeys.clear();
-                moveTimer.stop();
-                GameFrame.switchTo("map2");
+                showMap1Summary();
             }
         });
         prompt.setVisible(!doorOpen && isNearBook());
@@ -385,12 +383,18 @@ public class GameMap1 extends javax.swing.JPanel {
         dialog.setVisible(true);
         heldKeys.clear();
         // ผู้เล่นปิด popup หลังเล่นจบแล้ว ค่อยเปลี่ยนแมพ
+        // กลับมาแมพ 1 แบบเดิม กล่องยังเปิดได้ จนกว่าจะเดินไปที่ประตู
         if (station.isComplete()) {
             applyPassedMap();
-            removeBoxes();
-            // จบแมพ 1 ไปหน้าสรุปคะแนนก่อน กดปุ่มแล้วกลับมาเดินออกประตูไปแมพ 2
-            GameFrame.showResult("map1", "เล่นแมพ 2");
         }
+    }
+
+    // เดินถึงประตู: ไปหน้าสรุปผลเดิม (เกรด+คะแนน) ปุ่มเขียวไปแมพ 2 ปุ่มแดงกลับหน้าหลัก
+    private void showMap1Summary() {
+        heldKeys.clear();
+        moveTimer.stop();
+        removeBoxes();
+        GameFrame.showResult("map2", "เล่นแมพ 2", "mainmenu", "หน้าหลัก");
     }
 
     //เปลี่ยนเป็นแมพหลังผ่าน puzzle: พื้นหลังใหม่ กล่องยังอยู่ให้เปิดต่อได้จนกว่าจะออกประตู
