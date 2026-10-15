@@ -6,8 +6,8 @@ public class Character {
 
     private int x;
     private int y;
-    private int width = 30;
-    private int height = 30;
+    private int width = 20;
+    private int height = 18;
     private int speed = 2;
 
     public Character(int x, int y) {

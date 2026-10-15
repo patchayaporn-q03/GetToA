@@ -13,8 +13,8 @@ public class PuzzleScore {
     private static double puzzleTime;
     private static int puzzleScore;
 
-    // บันทึกไฟล์ไว้ในโฟลเดอร์ที่ใช้รันโปรแกรม
-    private static final Path CSV_FILE = Path.of("puzzle_scores.csv");
+    // ไฟล์ csv ทุกไฟล์เก็บในโฟลเดอร์ data (ดู CharacterData.DIR)
+    private static final Path CSV_FILE = Path.of(com.mycompany.data.CharacterData.DIR, "puzzle_scores.csv");
 
     public static void puzzleComplete(double time) {
         puzzleTime = time;
@@ -52,6 +52,7 @@ public class PuzzleScore {
         );
 
         try {
+            Files.createDirectories(CSV_FILE.toAbsolutePath().getParent());
             if (writeHeader) {
                 Files.writeString(
                         CSV_FILE,

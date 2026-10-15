@@ -15,16 +15,12 @@ public class MazeMap {
     public static final int WIDTH = 1280;
     public static final int HEIGHT = 720;
 
+    // ไฟล์แผนที่อยู่ที่ assets/map.png (ในโปรเจ็คนี้ไม่มีโฟลเดอร์ assets/map/)
     private static final String MAP_PATH =
             "/com/mycompany/puzzle/assets/map.png";
 
-    // ลดขนาด hitbox เพื่อไม่ให้ชนขอบตกแต่งง่ายเกินไป
-    private static final int HITBOX_INSET = 10;
-
-    private static final int SAMPLE_STEP = 2;
-
-    // กรองเส้นสีเข้มขนาดเล็กออกจากมาสก์
-    private static final int FILTER_RADIUS = 2;
+    // ลดขอบ Hitbox เพื่อไม่ให้ติดขอบตกแต่งง่ายเกินไป
+    private static final int HITBOX_INSET = 5;
 
     private BufferedImage background;
     private boolean[][] wall;
@@ -40,7 +36,7 @@ public class MazeMap {
         buildWallMask();
     }
 
-    // โหลดแผนที่
+    // โหลดภาพแผนที่
     private void loadBackground() {
         try {
             URL resource = getClass().getResource(MAP_PATH);
@@ -54,7 +50,9 @@ public class MazeMap {
             BufferedImage src = ImageIO.read(resource);
 
             if (src == null) {
-                throw new IOException("ไฟล์ภาพไม่ถูกต้อง");
+                throw new IOException(
+                        "ไฟล์ภาพแผนที่ไม่ถูกต้อง"
+                );
             }
 
             background = new BufferedImage(
@@ -65,6 +63,7 @@ public class MazeMap {
 
             Graphics2D g2 = background.createGraphics();
 
+            // ใช้การย่อภาพแบบเดียวกับภาพที่นำไปแสดง
             g2.setRenderingHint(
                     RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BICUBIC
@@ -73,7 +72,10 @@ public class MazeMap {
             g2.drawImage(src, 0, 0, WIDTH, HEIGHT, null);
             g2.dispose();
 
-            System.out.println("โหลดแผนที่สำเร็จ");
+            System.out.println(
+                    "โหลดแผนที่สำเร็จ: "
+                    + src.getWidth() + "x" + src.getHeight()
+            );
 
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -86,6 +88,9 @@ public class MazeMap {
         wall = new boolean[HEIGHT][WIDTH];
 
         if (background == null) {
+            System.err.println(
+                    "ไม่สามารถสร้าง Wall Mask ได้"
+            );
             return;
         }
 
@@ -99,95 +104,22 @@ public class MazeMap {
                 int b = rgb & 0xFF;
 
                 /*
-                 * ตรวจเฉพาะสีดำอมฟ้าที่เข้ม
-                 * ไม่ใช้เงื่อนไขกว้างเกินไป
+                 * ตรวจเฉพาะสีแกนกลางของกำแพงสีดำอมฟ้า
+                 * ไม่ใช้เกณฑ์สีเข้มที่กว้างเกินไป
+                 * เพื่อลดการตรวจจับเงาและเฟอร์นิเจอร์ผิดพลาด
                  */
                 boolean darkWall =
-                        r < 65 &&
-                        g < 78 &&
-                        b < 95 &&
-                        b >= r - 8 &&
-                        b >= g - 15 &&
-                        b - r < 45;
+                        r < 55 &&
+                        g < 68 &&
+                        b < 85 &&
+                        b - r < 35 &&
+                        g - r < 30;
 
                 wall[y][x] = darkWall;
             }
         }
 
-        /*
-         * กรองเส้นสีเข้มบาง ๆ ที่อาจทำให้ติดอากาศ
-         * หดกำแพงก่อน แล้วขยายกลับ
-         */
-        wall = morph(wall, false, FILTER_RADIUS);
-        wall = morph(wall, true, FILTER_RADIUS);
-
-        System.out.println("สร้างมาสก์กำแพงสำเร็จ");
-    }
-
-    // Morphological Opening: หดหรือขยายกำแพง
-    private boolean[][] morph(
-            boolean[][] src,
-            boolean dilate,
-            int radius
-    ) {
-        boolean[][] temp = new boolean[HEIGHT][WIDTH];
-        boolean[][] out = new boolean[HEIGHT][WIDTH];
-
-        // ประมวลผลแนวนอน
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-
-                boolean result = dilate ? false : true;
-
-                for (int k = -radius; k <= radius; k++) {
-                    int px = x + k;
-
-                    boolean value =
-                            px < 0 || px >= WIDTH || src[y][px];
-
-                    if (dilate && value) {
-                        result = true;
-                        break;
-                    }
-
-                    if (!dilate && !value) {
-                        result = false;
-                        break;
-                    }
-                }
-
-                temp[y][x] = result;
-            }
-        }
-
-        // ประมวลผลแนวตั้ง
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-
-                boolean result = dilate ? false : true;
-
-                for (int k = -radius; k <= radius; k++) {
-                    int py = y + k;
-
-                    boolean value =
-                            py < 0 || py >= HEIGHT || temp[py][x];
-
-                    if (dilate && value) {
-                        result = true;
-                        break;
-                    }
-
-                    if (!dilate && !value) {
-                        result = false;
-                        break;
-                    }
-                }
-
-                out[y][x] = result;
-            }
-        }
-
-        return out;
+        System.out.println("สร้าง Wall Mask สำเร็จ");
     }
 
     public int getStartX() {
@@ -216,51 +148,66 @@ public class MazeMap {
         }
     }
 
-    // ตรวจชนกำแพง
+    /*
+     * ตรวจชนตลอดพื้นที่ Hitbox
+     * ไม่สุ่มตรวจทีละจุด จึงไม่ข้ามพิกเซลกำแพงบาง ๆ
+     */
     public boolean isWall(
             int x,
             int y,
             int width,
             int height
     ) {
-        if (wall == null || width <= 0 || height <= 0) {
+        if (background == null ||
+                wall == null ||
+                width <= 0 ||
+                height <= 0) {
             return true;
         }
 
-        int insetX = Math.min(HITBOX_INSET, (width - 1) / 2);
-        int insetY = Math.min(HITBOX_INSET, (height - 1) / 2);
+        int insetX = Math.min(
+                HITBOX_INSET,
+                (width - 1) / 2
+        );
+
+        int insetY = Math.min(
+                HITBOX_INSET,
+                (height - 1) / 2
+        );
 
         int left = x + insetX;
         int right = x + width - 1 - insetX;
         int top = y + insetY;
         int bottom = y + height - 1 - insetY;
 
-        // ตรวจด้านบนและด้านล่าง
-        for (int px = left; px <= right; px += SAMPLE_STEP) {
-            if (isWallPixel(px, top) ||
-                isWallPixel(px, bottom)) {
-                return true;
+        // ป้องกันตัวละครออกนอกขอบแผนที่
+        if (left < 0 ||
+                top < 0 ||
+                right >= WIDTH ||
+                bottom >= HEIGHT) {
+            return true;
+        }
+
+        // ตรวจทุกพิกเซลใน Hitbox
+        for (int py = top; py <= bottom; py++) {
+            for (int px = left; px <= right; px++) {
+                if (wall[py][px]) {
+                    return true;
+                }
             }
         }
 
-        // ตรวจด้านซ้ายและด้านขวา
-        for (int py = top; py <= bottom; py += SAMPLE_STEP) {
-            if (isWallPixel(left, py) ||
-                isWallPixel(right, py)) {
-                return true;
-            }
-        }
-
-        // ตรวจปลายขอบให้ครบ
-        return isWallPixel(right, bottom)
-                || isWallPixel(right, top)
-                || isWallPixel(left, bottom)
-                || isWallPixel(left, top);
+        return false;
     }
 
+    // ตรวจพิกเซลกำแพงแต่ละตำแหน่ง
     private boolean isWallPixel(int x, int y) {
-        if (x < 0 || y < 0 ||
-            x >= WIDTH || y >= HEIGHT) {
+        if (background == null ||
+                wall == null ||
+                x < 0 ||
+                y < 0 ||
+                x >= WIDTH ||
+                y >= HEIGHT) {
             return true;
         }
 
@@ -274,6 +221,10 @@ public class MazeMap {
             int width,
             int height
     ) {
+        if (width <= 0 || height <= 0) {
+            return false;
+        }
+
         return new Rectangle(x, y, width, height)
                 .intersects(goal);
     }
