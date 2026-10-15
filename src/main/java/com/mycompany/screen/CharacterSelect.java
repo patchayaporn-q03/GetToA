@@ -45,6 +45,21 @@ public class CharacterSelect extends javax.swing.JPanel {
         showBoxes(startFemale);   // เลือกช่องเริ่มต้นให้ในเมธอดนี้
         //framglass.setBackground(new java.awt.Color(255, 255, 255, 120));
         setupGlassPanel();
+        preloadStandingPics();
+    }
+
+    //เตรียมรูปท่ายืนของตัวละครทั้งสองเพศไว้เบื้องหลัง กดสลับเพศจะได้ไม่ต้องรอสร้างรูป
+    private void preloadStandingPics() {
+        Thread preload = new Thread(() -> {
+            for (boolean male : new boolean[] {false, true}) {
+                for (com.mycompany.data.CharacterData c : male ? boys : girls) {
+                    WalkSprite.standingIcon(c.getImage(), male, 80);
+                    WalkSprite.standingIcon(c.getImage(), male, 200);
+                }
+            }
+        }, "character-preload");
+        preload.setDaemon(true);
+        preload.start();
     }
 
     //ตัวละครหญิง/ชาย อ่านจาก Data/character_stats.csv
@@ -60,6 +75,9 @@ public class CharacterSelect extends javax.swing.JPanel {
     private int selectedIndex = 0;
 
     private final java.awt.event.ActionListener[] boxListeners = new java.awt.event.ActionListener[9];
+
+    //รูปกรอบกล่องที่โหลดแล้ว (box_norma, box_selected) ไม่ต้องอ่านไฟล์ซ้ำทุกครั้งที่สลับเพศ
+    private final java.util.Map<String, java.awt.Image> frameCache = new java.util.HashMap<>();
 
     private String folder() {
         return com.mycompany.data.CharacterData.standyFolder(characters == boys ? "male" : "female");
@@ -131,8 +149,8 @@ public class CharacterSelect extends javax.swing.JPanel {
         java.awt.Graphics2D g = img.createGraphics();
         g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
                 java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.drawImage(new javax.swing.ImageIcon(
-                getClass().getResource("/images/charecter/" + frameName + ".png")).getImage(), 0, 0, 100, 100, null);
+        g.drawImage(frameCache.computeIfAbsent(frameName, f -> new javax.swing.ImageIcon(
+                getClass().getResource("/images/charecter/" + f + ".png")).getImage()), 0, 0, 100, 100, null);
         javax.swing.ImageIcon standing = WalkSprite.standingIcon(picName, characters == boys, 80);
         g.drawImage(standing != null ? standing.getImage() : new javax.swing.ImageIcon(
                 getClass().getResource("/images/avatar/" + folder() + "/" + picName + ".png")).getImage(), 10, 10, 80, 80, null);

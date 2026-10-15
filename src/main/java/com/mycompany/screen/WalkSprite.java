@@ -54,6 +54,11 @@ public class WalkSprite {
     private static final int[] MALE_ROWS = {2, 1, 3, 0};
 
     private WalkSprite(BufferedImage sheet, int size, boolean male) {
+        this(sheet, size, male, false);
+    }
+
+    // idleOnly = สร้างเฉพาะแถวหันหน้า (หน้าเลือกตัวละครใช้แค่ท่ายืน) ประหยัดเวลาวาดย่อ
+    private WalkSprite(BufferedImage sheet, int size, boolean male, boolean idleOnly) {
         int[] sheetRows = male ? MALE_ROWS : FEMALE_ROWS;
         cycle = male ? MALE_CYCLE : FEMALE_CYCLE;
         idleCol = male ? MALE_IDLE : FEMALE_IDLE;
@@ -70,12 +75,13 @@ public class WalkSprite {
         java.util.Arrays.fill(cellOf, -1);
         boolean[] seen = new boolean[sw * sh];
         int[] stack = new int[sw * sh];
+        int[] piece = new int[sw * sh];
 
         for (int start = 0; start < sw * sh; start++) {
             if (seen[start] || (argb[start] >>> 24) < MIN_ALPHA) {
                 continue;
             }
-            java.util.List<Integer> piece = new java.util.ArrayList<>();
+            int pieceSize = 0;
             int top = 0;
             stack[top++] = start;
             seen[start] = true;
@@ -83,7 +89,7 @@ public class WalkSprite {
             long sy = 0;
             while (top > 0) {
                 int p = stack[--top];
-                piece.add(p);
+                piece[pieceSize++] = p;
                 int x = p % sw;
                 int y = p / sw;
                 sx += x;
@@ -101,13 +107,13 @@ public class WalkSprite {
                     }
                 }
             }
-            if (piece.size() < MIN_PIECE_AREA) {
+            if (pieceSize < MIN_PIECE_AREA) {
                 continue;
             }
-            int col = Math.min(COLS - 1, (int) (sx / piece.size()) / cw);
-            int row = Math.min(ROWS - 1, (int) (sy / piece.size()) / ch);
-            for (int p : piece) {
-                cellOf[p] = row * COLS + col;
+            int col = Math.min(COLS - 1, (int) (sx / pieceSize) / cw);
+            int row = Math.min(ROWS - 1, (int) (sy / pieceSize) / ch);
+            for (int i = 0; i < pieceSize; i++) {
+                cellOf[piece[i]] = row * COLS + col;
             }
         }
 
@@ -145,6 +151,9 @@ public class WalkSprite {
         double scale = Math.min((double) size / maxW, (double) size / maxH);
 
         for (int k = 0; k < cells; k++) {
+            if (idleOnly && sheetRows[DOWN] != k / COLS) {
+                continue;
+            }
             BufferedImage out = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB_PRE);
             if (maxX[k] >= 0) {
                 int bw = maxX[k] - minX[k] + 1;
@@ -191,11 +200,12 @@ public class WalkSprite {
 
     // รูปท่ายืนตรง (หันหน้า) ของตัวละครตามชื่อรูป ใช้ในหน้าเลือกตัวละคร ให้ตรงกับตัวที่เดินในเกม
     // คืน null ถ้าตัวละครนั้นไม่มี sheet (ผู้เรียกใช้รูป standy เดิมแทน)
-    public static ImageIcon standingIcon(String image, boolean male, int size) {
+    // synchronized เพราะมีเธรด preload เบื้องหลังเรียกพร้อมกับ EDT
+    public static synchronized ImageIcon standingIcon(String image, boolean male, int size) {
         String key = (male ? "m:" : "f:") + image + ":" + size;
         if (!STANDING.containsKey(key)) {
             BufferedImage sheet = com.mycompany.data.CharacterData.loadWalkSheet(image, male ? "male" : "female");
-            STANDING.put(key, sheet == null ? null : new WalkSprite(sheet, size, male).idle());
+            STANDING.put(key, sheet == null ? null : new WalkSprite(sheet, size, male, true).idle());
         }
         return STANDING.get(key);
     }
