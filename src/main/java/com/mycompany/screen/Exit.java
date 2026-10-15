@@ -53,7 +53,7 @@ public class Exit extends javax.swing.JPanel {
         framexit.setText("framexit");
         add(framexit, new org.netbeans.lib.awtextra.AbsoluteConstraints(365, 190, 580, 340));
 
-        mapbass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/exit/mapexit.png"))); // NOI18N
+        mapbass.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/exit/mapbass.png"))); // NOI18N
         add(mapbass, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1280, 720));
     }// </editor-fold>//GEN-END:initComponents
 

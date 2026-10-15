@@ -312,9 +312,9 @@ public class GameMap2 extends javax.swing.JPanel {
 
     //ตัวละครเดินด้วย W A S D
     private void setupPlayer() {
-        // ตัวละครเริ่มต้นคือ pikachu.gif (ย่อให้พอดี PLAYER_SIZE) ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
+        // ตัวละครเริ่มต้นคือ girl.png (ย่อให้พอดี PLAYER_SIZE) ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
         java.awt.Image src = new javax.swing.ImageIcon(getClass().getResource(
-                "/com/mycompany/puzzle/assets/character/pikachu.gif")).getImage();
+                "/images/girl.png")).getImage();
         player = new javax.swing.JLabel(new javax.swing.ImageIcon(
                 src.getScaledInstance(PLAYER_SIZE, PLAYER_SIZE, java.awt.Image.SCALE_SMOOTH)));
         add(player, new org.netbeans.lib.awtextra.AbsoluteConstraints(
