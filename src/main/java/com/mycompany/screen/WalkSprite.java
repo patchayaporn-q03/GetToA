@@ -53,6 +53,7 @@ public class WalkSprite {
     private static final int[] FEMALE_ROWS = {0, 1, 2, 3};
     private static final int[] MALE_ROWS = {2, 1, 3, 0};
 
+    // สร้างแอนิเมชันเต็ม (ทั้ง 4 ทิศ) จาก sprite sheet; male = ใช้ลำดับแถว/เฟรมของตัวละครชาย
     private WalkSprite(BufferedImage sheet, int size, boolean male) {
         this(sheet, size, male, false);
     }
@@ -220,6 +221,7 @@ public class WalkSprite {
         return new WalkSprite(sheet, size, s != null && s[0].trim().equalsIgnoreCase("male"));
     }
 
+    // เฟรมท่ายืน (ทิศล่าสุดที่หัน) และรีเซ็ตตัวนับแอนิเมชัน
     public ImageIcon idle() {
         tick = 0;
         return frames[direction][idleCol];

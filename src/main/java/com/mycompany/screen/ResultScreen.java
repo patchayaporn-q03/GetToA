@@ -6,7 +6,7 @@ package com.mycompany.screen;
 import com.mycompany.data.SaveData;
 
 /**
- *
+ * หน้าสรุปผลหลังจบแต่ละแมพ: แสดงเกรด คะแนนปริศนา/กล่อง/รวม และปุ่มเขียว (ไปต่อ) / ปุ่มแดง
  * @author lenovo
  */
 public class ResultScreen extends javax.swing.JPanel {
@@ -47,6 +47,7 @@ public class ResultScreen extends javax.swing.JPanel {
         return label;
     }
 
+    // สร้างข้อความบนหน้าสรุป: หัวข้อ เกรด และบรรทัดคะแนนปริศนา/กล่อง/รวม
     private void setupResultLabels() {
         int center = javax.swing.SwingConstants.CENTER;
         int left = javax.swing.SwingConstants.LEFT;
@@ -69,18 +70,38 @@ public class ResultScreen extends javax.swing.JPanel {
     private String nextCard = "mainmenu";
     private String nextText = "หน้าหลัก";
 
+    // ปลายทางของปุ่มแดง null = ออกจากเกม (ค่าเริ่มต้น)
+    private String backCard = null;
+    private String backText = "ออกจากเกม";
+
+    // ตั้งปุ่มเขียวให้ไปหน้า card ที่กำหนด (ปุ่มแดงกลับเป็น "ออกจากเกม")
     public void setNext(String card, String text) {
+        setNext(card, text, null, "ออกจากเกม");
+    }
+
+    // ตั้งทั้งปุ่มเขียว (ไปต่อ) และปุ่มแดง (ไปหน้า backToCard ถ้าไม่ใช่ null)
+    public void setNext(String card, String text, String backToCard, String backToText) {
         nextCard = card;
         nextText = text;
+        backCard = backToCard;
+        backText = backToText;
         btngreen.setText(text);
+        btnred.setText(backToText);
     }
 
-    // ปุ่มเขียว = ไปต่อ (ค่าเริ่มต้นกลับหน้าหลัก), ปุ่มแดง = ออกจากเกม
+    // ปุ่มเขียว = ไปต่อ (ค่าเริ่มต้นกลับหน้าหลัก), ปุ่มแดง = ออกจากเกม (หรือไปหน้าที่ตั้งด้วย setNext 4 พารามิเตอร์)
     private void setupButtons() {
         setupButton(btngreen, nextText, () -> GameFrame.switchTo(nextCard));
-        setupButton(btnred, "ออกจากเกม", () -> System.exit(0));
+        setupButton(btnred, backText, () -> {
+            if (backCard == null) {
+                System.exit(0);
+            } else {
+                GameFrame.switchTo(backCard);
+            }
+        });
     }
 
+    // ทำ JLabel ให้ทำงานเป็นปุ่ม: ใส่ข้อความ ฟอนต์ เคอร์เซอร์มือ และเรียก action เมื่อคลิก
     private void setupButton(javax.swing.JLabel button, String text, Runnable action) {
         button.setText(text);
         button.setFont(new java.awt.Font(GameFrame.FONT_NAME, java.awt.Font.BOLD, 24));
@@ -110,6 +131,7 @@ public class ResultScreen extends javax.swing.JPanel {
         repaint();
     }
 
+    // สีของตัวอักษรเกรด: A เขียว, B ฟ้า, C ส้มเหลือง, D ส้มแดง, อื่น ๆ แดง
     private static java.awt.Color gradeColor(String grade) {
         switch (grade) {
             case "A": return new java.awt.Color(0x2E8B3D);
@@ -159,6 +181,7 @@ public class ResultScreen extends javax.swing.JPanel {
     private javax.swing.JLabel map;
     // End of variables declaration//GEN-END:variables
 
+    // ไว้ทดสอบหน้านี้หน้าเดียว (ไม่ได้ใช้ตอนเล่นจริง)
     public static void main(String[] args) {
     javax.swing.SwingUtilities.invokeLater(() -> {
         javax.swing.JFrame frame = new javax.swing.JFrame("Test ResultScreen");

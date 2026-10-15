@@ -6,7 +6,7 @@ package com.mycompany.screen;
  */
 
 /**
- *
+ * หน้ายืนยันออกจากเกม (ตอนนี้ไม่ได้ถูกใช้ใน CardLayout)
  * @author lenovo
  */
 public class Exit extends javax.swing.JPanel {

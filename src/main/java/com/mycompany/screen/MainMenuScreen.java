@@ -6,13 +6,17 @@ package com.mycompany.screen;
  */
 
 /**
- *
+ * เมนูหลัก: ปุ่ม Play (เริ่มเกมใหม่) / Avatar (เลือกตัวละคร) / Exit (ยืนยันแล้วออก)
  * @author lenovo
  */
 public class MainMenuScreen extends javax.swing.JPanel {
 
+    // สร้างเมนูหลักจาก form แล้วย่อรูปพื้นหลัง 1920x1080 ให้พอดีหน้าจอ (JLabel ไม่ย่อรูปให้เอง)
     public MainMenuScreen() {
         initComponents();
+        // พื้นหลังเป็นรูป 1920x1080 ย่อให้พอดีหน้าจอ 1280x720 (JLabel ไม่ย่อรูปให้เอง)
+        jLabel1.setIcon(ImageUtil.scaledIcon("/images/mainmenu/mapbass.png",
+                GameFrame.SCREEN_W, GameFrame.SCREEN_H));
     }
 
     @SuppressWarnings("unchecked")
@@ -58,7 +62,7 @@ public class MainMenuScreen extends javax.swing.JPanel {
     private void exitGame(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitGame
         // TODO add your handling code here:
         int choice = javax.swing.JOptionPane.showConfirmDialog(
-        this, "Are you sure you want to exit?", "Exit",
+        javax.swing.SwingUtilities.getWindowAncestor(this), "Are you sure you want to exit?", "Exit",
         javax.swing.JOptionPane.YES_NO_OPTION);
         if (choice == javax.swing.JOptionPane.YES_OPTION) {
             System.exit(0);

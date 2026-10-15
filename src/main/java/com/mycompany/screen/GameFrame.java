@@ -12,7 +12,7 @@ import javax.swing.SwingUtilities;
 import java.awt.CardLayout;
 
 /**
- *
+ * จุดเริ่มโปรแกรม: สร้างหน้าต่างหลัก รวมทุกหน้าไว้ใน CardLayout และสลับหน้า/เริ่มเกมใหม่/แสดงหน้าสรุปผล
  * @author lenovo
  */
 public class GameFrame {
@@ -20,9 +20,10 @@ public class GameFrame {
     public static final int SCREEN_W = 1280;
     public static final int SCREEN_H = 720;
 
-    // ฟอนต์ของทั้งโปรเจกต์ ถ้าภาษาไทยเป็นช่องสี่เหลี่ยมให้เปลี่ยนเป็น "Tahoma , Sarabun"
+    // ฟอนต์ของทั้งโปรเจกต์ ถ้าภาษาไทยเป็นช่องสี่เหลี่ยมให้เปลี่ยนเป็น "Tahoma"
     public static final String FONT_NAME = "Tahoma";
     private static GradeManager gradeManager = new GradeManager();
+    // ตัวสลับหน้า (cardLayout/cards) และหน้าที่ต้องอ้างถึงภายหลัง: หน้าสรุป หน้าเลือกตัวละคร และแมพ (สร้างใหม่ตอนเริ่มเกม)
     private static CardLayout cardLayout;
     private static JPanel cards;
     private static ResultScreen resultScreen;
@@ -30,8 +31,10 @@ public class GameFrame {
     private static GameMap1 map1;
     private static GameMap2 map2;
 
+    // จุดเริ่มโปรแกรม: สร้างหน้าต่างเดียว วางทุกหน้าเป็น card ใน CardLayout แล้วครอบด้วย ScaledContainer ให้ย่อ/ขยายได้
     public static void main(String[] args) {
         useThaiFont();
+        ScaledContainer.install();
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Get to A");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -50,7 +53,10 @@ public class GameFrame {
             resultScreen = new ResultScreen();
             cards.add(resultScreen, "result");
 
-            frame.add(cards);
+            // หน้าจอทั้งหมดออกแบบที่ SCREEN_W x SCREEN_H: ครอบด้วย ScaledContainer เพื่อย่อ/ขยายตามหน้าต่างโดยคงสัดส่วน
+            cards.setPreferredSize(new java.awt.Dimension(SCREEN_W, SCREEN_H));
+            frame.add(new ScaledContainer(cards, SCREEN_W, SCREEN_H));
+            frame.setMinimumSize(new java.awt.Dimension(SCREEN_W / 2, SCREEN_H / 2));
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
@@ -68,6 +74,7 @@ public class GameFrame {
             }
         }
     }
+    // คืน GradeManager (หมายเหตุ: ตัวที่ใช้เก็บคะแนนจริงคือ GradeManager.getInstance())
     public static GradeManager getGradeManager() {
         return gradeManager;
     }
@@ -78,8 +85,7 @@ public class GameFrame {
         characterSelect.saveCurrentSelection();
         GradeManager.getInstance().reset();
         //com.mycompany.puzzle.PuzzleScore.reset();
-        com.mycompany.puzzle.saifai.WiringTask.reset();
-        com.mycompany.grade.GameResult.setMap2Mode(false);
+        //com.mycompany.puzzle.saifai.WiringTask.reset();
         resultScreen.setNext("mainmenu", "หน้าหลัก");
 
         cards.remove(map1);
@@ -91,6 +97,7 @@ public class GameFrame {
         switchTo("map1");
     }
 
+    // สลับไปแสดงหน้าตามชื่อ card (mainmenu, avatar, map1, map2, result)
     public static void switchTo(String name) {
         cardLayout.show(cards, name);
     }
@@ -101,17 +108,16 @@ public class GameFrame {
         switchTo("result");
     }
 
-    // แสดงหน้าสรุป พร้อมตั้งทั้งปุ่มเขียวและปุ่มแดง
-    public static void showResult(String nextCard, String nextText, String altCard, String altText) {
+    // แสดงหน้าสรุป พร้อมตั้งปุ่มเขียวให้ไปหน้า card ที่กำหนด
+    public static void showResult(String nextCard, String nextText) {
         resultScreen.setNext(nextCard, nextText);
-        resultScreen.setAlt(altCard, altText);
         resultScreen.refresh();
         switchTo("result");
     }
 
-    // แสดงหน้าสรุป พร้อมตั้งปุ่มเขียวให้ไปหน้า card ที่กำหนด
-    public static void showResult(String nextCard, String nextText) {
-        resultScreen.setNext(nextCard, nextText);
+    // แสดงหน้าสรุป พร้อมตั้งปุ่มเขียวและปุ่มแดงให้ไปหน้า card ที่กำหนด
+    public static void showResult(String nextCard, String nextText, String backCard, String backText) {
+        resultScreen.setNext(nextCard, nextText, backCard, backText);
         resultScreen.refresh();
         switchTo("result");
     }

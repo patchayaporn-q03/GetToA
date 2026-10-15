@@ -8,7 +8,7 @@ import com.mycompany.grade.GradeBox;
 import com.mycompany.grade.GradeManager;
 
 /**
- *
+ * แมพ 2 (โรงอาหาร) ที่เดินได้ด้วย WASD: มีกล่อง 6 กล่อง จานอาหาร (กด E เล่นต่อสายไฟ) และประตูล่างที่เปิดหลังต่อสายไฟเสร็จ
  * @author lenovo
  */
 public class GameMap2 extends javax.swing.JPanel {
@@ -17,9 +17,13 @@ public class GameMap2 extends javax.swing.JPanel {
      * Creates new form GameMap2
      */
     public GameMap2() {
+        // สร้างองค์ประกอบจาก form (พื้นหลัง โต๊ะ ฯลฯ)
         initComponents();
+        // วางกล่องสมบัติ 6 กล่องลงแมพ
         setupBoxes();
+        // สร้างตัวผู้เล่น ผูกปุ่ม WASD/E และตัวจับเวลาเดิน
         setupPlayer();
+        // ปุ่มกลับหน้าหลัก
         setupBackButton();
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
@@ -64,6 +68,7 @@ public class GameMap2 extends javax.swing.JPanel {
     private final java.util.Set<Integer> openedIndexes = new java.util.HashSet<>();
     private boolean addingBoxes = false;
 
+    // ให้ GradeBox สร้างกล่องลงแมพนี้ แล้วสลับรูปกล่องจากของแมพ 1 เป็นรูปกล่องของแมพ 2
     private void setupBoxes() {
         addingBoxes = true;
         try {
@@ -82,6 +87,7 @@ public class GameMap2 extends javax.swing.JPanel {
 
     private java.awt.image.BufferedImage boxImage;
 
+    // โหลดรูปกล่องแมพ 2 (boxmap2.png) ย่อเป็นขนาด BOX_SIZE ด้วย nearest-neighbor ให้ลายพิกเซลคมชัด
     private java.awt.image.BufferedImage loadBoxImage() {
         java.awt.image.BufferedImage src;
         try {
@@ -133,14 +139,12 @@ public class GameMap2 extends javax.swing.JPanel {
 
     // เปลี่ยนรูปกล่องที่เปิดแล้วให้เป็นกล่องใสๆ
     private void makeBoxTransparent(int index) {
-        // boxLabels เก็บป้าย E (ไม่มีรูป) สลับกับกล่อง (มีรูป) ตามลำดับตำแหน่ง
-        // จึงนับเฉพาะป้ายที่มีรูปเพื่อหากล่องลำดับที่ index (รวมกล่องบนโต๊ะ ที่คงอยู่ที่เดิม)
-        int n = 0;
+        int[] p = gradeBox.getAllBoxPositions()[index];
         for (java.awt.Component c : boxLabels) {
-            if (c instanceof javax.swing.JLabel label && label.getIcon() != null) {
-                if (n++ != index) {
-                    continue;
-                }
+            if (c instanceof javax.swing.JLabel label
+                    && label.getIcon() != null
+                    && label.getX() == p[0] && label.getY() == p[1]
+                    && label.getWidth() == BOX_SIZE && label.getHeight() == BOX_SIZE) {
                 java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
                         BOX_SIZE, BOX_SIZE, java.awt.image.BufferedImage.TYPE_INT_ARGB);
                 java.awt.Graphics2D g = img.createGraphics();
@@ -186,7 +190,7 @@ public class GameMap2 extends javax.swing.JPanel {
     }
 
     private static final int PLAYER_SIZE = 60;
-    private static final int PLAYER_SPEED = 2;
+    private static final int PLAYER_SPEED = 4;
 
     //จุดเกิด: ยืนอยู่ที่ประตูล่าง (ประตูคู่กลางด้านล่างของแมพ)
     private static final int SPAWN_X = 585;
@@ -201,6 +205,7 @@ public class GameMap2 extends javax.swing.JPanel {
     //พื้นที่เดินได้ = พื้นไม้ + ทางเดินที่ประตู แล้วหักเคาน์เตอร์กับโต๊ะออก
     private final java.awt.geom.Area walkable = buildWalkableArea();
 
+    // สร้างพื้นที่เดินได้ = พื้นไม้ + ทางเดินที่ประตู แล้วลบเคาน์เตอร์ โต๊ะ และกล่องบนพื้น
     private java.awt.geom.Area buildWalkableArea() {
         java.awt.geom.Area area = new java.awt.geom.Area();
         area.add(new java.awt.geom.Area(new java.awt.Rectangle(180, 190, 680, 390))); // พื้นไม้
@@ -217,15 +222,15 @@ public class GameMap2 extends javax.swing.JPanel {
         return area;
     }
 
+    // เช็กว่ากล่องชนที่เท้าของตัวละคร (HIT_*) ตำแหน่ง x,y อยู่ในพื้นที่เดินได้ทั้งก้อนหรือไม่
     private boolean canStand(int x, int y) {
         return walkable.contains(new java.awt.Rectangle(x + HIT_X, y + HIT_Y, HIT_W, HIT_H));
     }
 
-    private boolean wiringDone = false;
-
     // หลังสรุปผลแล้วกล่องหายไปและเปิดไม่ได้อีก
     private boolean boxesRemoved = false;
 
+    // ลบกล่องที่เหลือออกจากแมพ (หลังผู้เล่นเลือกสรุปผล) แล้วเปิดพื้นที่ที่เคยเป็นกล่องให้เดินผ่านได้
     private void removeBoxes() {
         boxesRemoved = true;
         for (java.awt.Component c : boxLabels) {
@@ -242,21 +247,15 @@ public class GameMap2 extends javax.swing.JPanel {
 
     // เปิด WiringTask ใน popup ต่อสายครบแล้วไปหน้าสรุปคะแนน (กด Esc เพื่อปิดโดยไม่เล่นจบ)
     private void openWiringTask() {
-        if (wiringDone) {
-            return;
-        }
         javax.swing.JDialog dialog = new javax.swing.JDialog(
                 javax.swing.SwingUtilities.getWindowAncestor(this), "Wiring Task",
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setUndecorated(true);
-        dialog.add(new com.mycompany.puzzle.saifai.WiringTask(dialog::dispose));
-        dialog.pack();
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
+        ScaledContainer.showDialog(dialog,
+                new com.mycompany.puzzle.saifai.WiringTask(dialog::dispose), this);
         heldKeys.clear();
         // กลับมาแมพ 2 แบบเดิม ไฟสว่างขึ้น กล่องยังเปิดได้ จนกว่าจะเดินไปที่ประตู
         if (com.mycompany.puzzle.saifai.WiringTask.isPlayed()) {
-            wiringDone = true;
             com.mycompany.grade.GameResult.setMap2Mode(true);
             applyPassedMap();
         }
@@ -273,9 +272,30 @@ public class GameMap2 extends javax.swing.JPanel {
     private void applyPassedMap() {
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/map2/map2-pass.png")));
         doorOpen = true;
-        prompt.setVisible(false);
         revalidate();
         repaint();
+    }
+
+    // ถามก่อนสรุปผล ถ้าเลือกเล่นต่อจะไม่ถามซ้ำจนกว่าจะเดินออกจากประตูแล้วกลับมาใหม่
+    private boolean doorAsked = false;
+
+    // popup ถามผู้เล่นตอนถึงประตูว่าจะ "สรุปผล" หรือ "เล่นต่อ" (ค่าเริ่มต้นเล่นต่อ)
+    private void confirmSummary() {
+        heldKeys.clear();
+        moveTimer.stop();
+        Object[] options = {"สรุปผล", "เล่นต่อ"};
+        // ใช้หน้าต่างเกมเป็น parent เพื่อให้ popup อยู่กลางจอเสมอ
+        int choice = javax.swing.JOptionPane.showOptionDialog(
+                javax.swing.SwingUtilities.getWindowAncestor(this),
+                "ต้องการสรุปผลแมพนี้ หรือเล่นต่อ?",
+                "สรุปผล",
+                javax.swing.JOptionPane.DEFAULT_OPTION,
+                javax.swing.JOptionPane.QUESTION_MESSAGE,
+                null, options, options[1]);
+        heldKeys.clear();
+        if (choice == 0) {
+            showMap2Summary();
+        }
     }
 
     // เดินถึงประตู: ป๊อบอัพสรุปผลแมพ 2 (WiringTask + กล่องแมพ 2 ไม่รวมแมพ 1)
@@ -285,6 +305,7 @@ public class GameMap2 extends javax.swing.JPanel {
         removeBoxes();
         GameFrame.showResult("mainmenu", "หน้าหลัก");
     }
+
     private javax.swing.JLabel player;
     private javax.swing.Timer moveTimer;
     private final java.util.Set<String> heldKeys = new java.util.HashSet<>();
@@ -312,13 +333,14 @@ public class GameMap2 extends javax.swing.JPanel {
 
         javax.swing.InputMap in = getInputMap(WHEN_IN_FOCUSED_WINDOW);
         javax.swing.ActionMap act = getActionMap();
+        // ปุ่ม E = โต้ตอบ: เปิด puzzle ถ้าอยู่ใกล้จุด puzzle ไม่งั้นเปิดกล่องที่ใกล้ที่สุด
         in.put(javax.swing.KeyStroke.getKeyStroke("pressed E"), "interact");
         act.put("interact", new javax.swing.AbstractAction() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 heldKeys.clear();
                 moveTimer.stop();
-                if (!wiringDone && isNearPlate()) {
+                if (isNearPlate()) {
                     openWiringTask();
                 } else if (!boxesRemoved) {
                     int target = nearestClosedBoxIndex();
@@ -333,6 +355,7 @@ public class GameMap2 extends javax.swing.JPanel {
                 }
             }
         });
+        // ผูกปุ่ม W A S D: กด = เพิ่มชื่อปุ่มใน heldKeys แล้วเริ่ม moveTimer, ปล่อย = เอาออก
         for (String k : new String[] {"W", "A", "S", "D"}) {
             in.put(javax.swing.KeyStroke.getKeyStroke("pressed " + k), "press" + k);
             in.put(javax.swing.KeyStroke.getKeyStroke("released " + k), "release" + k);
@@ -351,6 +374,7 @@ public class GameMap2 extends javax.swing.JPanel {
             });
         }
 
+        // ลูปการเดิน ทำงานทุก 16 ms (~60 ครั้งต่อวินาที) ตราบที่ยังมีปุ่มค้าง
         moveTimer = new javax.swing.Timer(16, e -> {
             if (heldKeys.isEmpty()) {
                 if (walkSprite != null) {
@@ -359,6 +383,7 @@ public class GameMap2 extends javax.swing.JPanel {
                 moveTimer.stop();
                 return;
             }
+            // รวมทิศจากปุ่มที่กดค้างเป็น dx,dy (กดสองปุ่มพร้อมกันจะเดินทแยง)
             int dx = 0;
             int dy = 0;
             if (heldKeys.contains("A")) dx -= PLAYER_SPEED;
@@ -366,6 +391,7 @@ public class GameMap2 extends javax.swing.JPanel {
             if (heldKeys.contains("W")) dy -= PLAYER_SPEED;
             if (heldKeys.contains("S")) dy += PLAYER_SPEED;
 
+            // ขยับทีละแกน (x แล้วค่อย y) เฉพาะเมื่อตำแหน่งใหม่ยืนได้ จึงเดินไถลตามกำแพงได้ไม่ติดมุม
             int x = player.getX();
             int y = player.getY();
             if (dx != 0 && canStand(x + dx, y)) {
@@ -374,6 +400,7 @@ public class GameMap2 extends javax.swing.JPanel {
             if (dy != 0 && canStand(x, y + dy)) {
                 y += dy;
             }
+            // ย้ายตัวละครและเปลี่ยนเฟรมแอนิเมชันตามทิศที่เดิน
             player.setLocation(x, y);
             if (walkSprite != null) {
                 player.setIcon(walkSprite.walk(dx, dy));
@@ -381,13 +408,19 @@ public class GameMap2 extends javax.swing.JPanel {
 
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
-            prompt.setVisible(!wiringDone && isNearPlate());
+            // อัปเดตป้าย E ของจานอาหารและของกล่องที่อยู่ใกล้
+            prompt.setVisible(isNearPlate());
             if (!boxesRemoved) {
                 gradeBox.updatePrompts(player);
             }
+            // ถึงประตูล่างหรือยัง: ถามสรุปผลครั้งเดียวต่อการเข้าประตู (doorAsked กันถามซ้ำ)
             int cx = x + PLAYER_SIZE / 2;
-            if (doorOpen && y + HIT_Y >= DOOR_FEET_Y && cx >= DOOR_MIN_X && cx <= DOOR_MAX_X) {
-                showMap2Summary();
+            boolean atDoor = doorOpen && y + HIT_Y >= DOOR_FEET_Y && cx >= DOOR_MIN_X && cx <= DOOR_MAX_X;
+            if (atDoor && !doorAsked) {
+                doorAsked = true;
+                confirmSummary();
+            } else if (!atDoor) {
+                doorAsked = false;
             }
         });
         gradeBox.updatePrompts(player);

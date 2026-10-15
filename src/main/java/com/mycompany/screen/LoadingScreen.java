@@ -18,7 +18,7 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 
 /**
- *
+ * หน้าโหลดที่วาดเอง (ชื่อเกม + จุด loading + ตัวละครเด้ง) ตอนนี้ปิดไว้ใน GameFrame
  * @author lenovo
  */
 public class LoadingScreen extends JPanel {
@@ -29,6 +29,7 @@ public class LoadingScreen extends JPanel {
     private Timer timer;
     private Image character;
 
+    // โหลดรูปตัวละคร และสร้าง Timer 40 ms นับเวลา+วาดใหม่ ครบเวลาแล้วสลับไปหน้าถัดไป
     public LoadingScreen() {
         setPreferredSize(new Dimension(1280, 720));
         setBackground(Color.WHITE);
@@ -51,6 +52,7 @@ public class LoadingScreen extends JPanel {
         timer.start();
     }
 
+    // วาดหน้าโหลดทั้งหมด: พื้นหลัง ชื่อเกม ข้อความ loading พร้อมจุด และตัวละครที่เด้งขึ้นลง
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -69,12 +71,14 @@ public class LoadingScreen extends JPanel {
         drawCharacter(g2d, getWidth() / 2, getHeight() / 2 + 30 + bob);
     }
 
+    // วาดข้อความให้อยู่กึ่งกลางแนวนอนที่ความสูง y
     private void drawCentered(Graphics g2, String Text, int y) {
         FontMetrics fm = g2.getFontMetrics();
         int x = (getWidth() - fm.stringWidth(Text)) / 2;
         g2.drawString(Text, x, y);
     }
 
+    // วาดตัวละครกึ่งกลางที่ cx (ถ้าไม่มีรูปวาดวงกลมแทน)
     private void drawCharacter(Graphics2D g2, int cx, int topY) {
         int size = 120;
         if (character != null) {

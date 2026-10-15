@@ -6,7 +6,7 @@ package com.mycompany.screen;
  */
 
 /**
- *
+ * หน้าเลือกตัวละคร: เลือกเพศ + ตัวละคร 1 ใน 9 ตัว ตั้งชื่อ แล้วบันทึกลง settings.csv (กด confirm) หรือกลับเมนู
  * @author lenovo
  */
 public class CharacterSelect extends javax.swing.JPanel {
@@ -16,6 +16,9 @@ public class CharacterSelect extends javax.swing.JPanel {
      */
     public CharacterSelect() {
         initComponents();
+        // พื้นหลังเป็นรูป 1920x1080 ย่อให้พอดีหน้าจอ 1280x720 (JLabel ไม่ย่อรูปให้เอง)
+        jLabel1.setIcon(ImageUtil.scaledIcon("/images/exit/mapbass.png",
+                GameFrame.SCREEN_W, GameFrame.SCREEN_H));
 
         //เลือกได้ทีละเพศ และเปลี่ยนรูปปุ่มเมื่อถูกเลือก
         javax.swing.ButtonGroup genderGroup = new javax.swing.ButtonGroup();
@@ -79,10 +82,12 @@ public class CharacterSelect extends javax.swing.JPanel {
     //รูปกรอบกล่องที่โหลดแล้ว (box_norma, box_selected) ไม่ต้องอ่านไฟล์ซ้ำทุกครั้งที่สลับเพศ
     private final java.util.Map<String, java.awt.Image> frameCache = new java.util.HashMap<>();
 
+    // โฟลเดอร์รูปท่ายืน (standy) ตามเพศที่เลือกอยู่: หญิง = standy, ชาย = standyboy
     private String folder() {
         return com.mycompany.data.CharacterData.standyFolder(characters == boys ? "male" : "female");
     }
 
+    // โหลดรูปตัวละครขนาด size x size ใช้ท่ายืนตรงจากแอนิเมชัน ถ้าไม่มี sheet ใช้รูป standy เดิม
     private javax.swing.ImageIcon loadPic(String name, int size) {
         // ใช้ท่ายืนตรงจากแอนิเมชัน (ตัวเดียวกับที่เดินในเกม) ถ้าไม่มีใช้รูป standy เดิม
         javax.swing.ImageIcon standing = WalkSprite.standingIcon(name, characters == boys, size);
@@ -94,6 +99,7 @@ public class CharacterSelect extends javax.swing.JPanel {
         return new javax.swing.ImageIcon(img.getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH));
     }
 
+    // สลับรายชื่อตัวละครในช่อง 9 ช่องเป็นของหญิง/ชาย: ผูกคลิกแต่ละช่อง ใส่รูป+กรอบ และเลือกตัวที่เคยบันทึกไว้
     private void showBoxes(boolean female) {
         characters = female ? girls : boys;
         String gender = female ? "female" : "male";
@@ -160,6 +166,7 @@ public class CharacterSelect extends javax.swing.JPanel {
 
 
 
+    // ทำแผงกระจกโปร่งใสขอบมนที่ครอบส่วนเลือกตัวละคร (วาดสี่เหลี่ยมมนสีขาวโปร่งเอง)
     private void setupGlassPanel() {
         framglass.setOpaque(false);
         framglass.setBorder(new javax.swing.border.AbstractBorder() {
