@@ -18,11 +18,13 @@ public class MazeMap {
     private static final String MAP_PATH =
             "/com/mycompany/puzzle/assets/map/map.png";
 
-    // ลด Hitbox เพื่อให้เดินผ่านทางแคบได้ง่ายขึ้น
+    // ลดขนาด hitbox เพื่อไม่ให้ชนขอบตกแต่งง่ายเกินไป
     private static final int HITBOX_INSET = 10;
 
-    // ตรวจชนละเอียด
     private static final int SAMPLE_STEP = 2;
+
+    // กรองเส้นสีเข้มขนาดเล็กออกจากมาสก์
+    private static final int FILTER_RADIUS = 2;
 
     private BufferedImage background;
     private boolean[][] wall;
@@ -38,6 +40,7 @@ public class MazeMap {
         buildWallMask();
     }
 
+    // โหลดแผนที่
     private void loadBackground() {
         try {
             URL resource = getClass().getResource(MAP_PATH);
@@ -73,15 +76,12 @@ public class MazeMap {
             System.out.println("โหลดแผนที่สำเร็จ");
 
         } catch (IOException e) {
-            System.err.println(
-                    "โหลดแผนที่ไม่สำเร็จ: " + e.getMessage()
-            );
-
+            System.err.println(e.getMessage());
             background = null;
         }
     }
 
-    // ตรวจจับกำแพง โดยลดโอกาสตรวจเฟอร์นิเจอร์เป็นกำแพง
+    // สร้างมาสก์กำแพง
     private void buildWallMask() {
         wall = new boolean[HEIGHT][WIDTH];
 
@@ -99,19 +99,95 @@ public class MazeMap {
                 int b = rgb & 0xFF;
 
                 /*
-                 * กำแพงหลักเป็นสีดำอมฟ้า
-                 * เฟอร์นิเจอร์ส่วนใหญ่มีสีน้ำตาลหรือสีสว่างกว่า
+                 * ตรวจเฉพาะสีดำอมฟ้าที่เข้ม
+                 * ไม่ใช้เงื่อนไขกว้างเกินไป
                  */
                 boolean darkWall =
-                        r < 60 &&
-                        g < 75 &&
+                        r < 65 &&
+                        g < 78 &&
                         b < 95 &&
-                        b >= r &&
-                        b >= g - 5;
+                        b >= r - 8 &&
+                        b >= g - 15 &&
+                        b - r < 45;
 
                 wall[y][x] = darkWall;
             }
         }
+
+        /*
+         * กรองเส้นสีเข้มบาง ๆ ที่อาจทำให้ติดอากาศ
+         * หดกำแพงก่อน แล้วขยายกลับ
+         */
+        wall = morph(wall, false, FILTER_RADIUS);
+        wall = morph(wall, true, FILTER_RADIUS);
+
+        System.out.println("สร้างมาสก์กำแพงสำเร็จ");
+    }
+
+    // Morphological Opening: หดหรือขยายกำแพง
+    private boolean[][] morph(
+            boolean[][] src,
+            boolean dilate,
+            int radius
+    ) {
+        boolean[][] temp = new boolean[HEIGHT][WIDTH];
+        boolean[][] out = new boolean[HEIGHT][WIDTH];
+
+        // ประมวลผลแนวนอน
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+
+                boolean result = dilate ? false : true;
+
+                for (int k = -radius; k <= radius; k++) {
+                    int px = x + k;
+
+                    boolean value =
+                            px < 0 || px >= WIDTH || src[y][px];
+
+                    if (dilate && value) {
+                        result = true;
+                        break;
+                    }
+
+                    if (!dilate && !value) {
+                        result = false;
+                        break;
+                    }
+                }
+
+                temp[y][x] = result;
+            }
+        }
+
+        // ประมวลผลแนวตั้ง
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+
+                boolean result = dilate ? false : true;
+
+                for (int k = -radius; k <= radius; k++) {
+                    int py = y + k;
+
+                    boolean value =
+                            py < 0 || py >= HEIGHT || temp[py][x];
+
+                    if (dilate && value) {
+                        result = true;
+                        break;
+                    }
+
+                    if (!dilate && !value) {
+                        result = false;
+                        break;
+                    }
+                }
+
+                out[y][x] = result;
+            }
+        }
+
+        return out;
     }
 
     public int getStartX() {
@@ -122,6 +198,7 @@ public class MazeMap {
         return START_Y;
     }
 
+    // วาดแผนที่
     public void draw(Graphics g) {
         if (background != null) {
             g.drawImage(
@@ -139,22 +216,26 @@ public class MazeMap {
         }
     }
 
-    // ตรวจว่าตัวละครชนกำแพงหรือไม่
+    // ตรวจชนกำแพง
     public boolean isWall(
             int x,
             int y,
             int width,
             int height
     ) {
-        int insetX = Math.min(HITBOX_INSET, width / 3);
-        int insetY = Math.min(HITBOX_INSET, height / 3);
+        if (wall == null || width <= 0 || height <= 0) {
+            return true;
+        }
+
+        int insetX = Math.min(HITBOX_INSET, (width - 1) / 2);
+        int insetY = Math.min(HITBOX_INSET, (height - 1) / 2);
 
         int left = x + insetX;
         int right = x + width - 1 - insetX;
         int top = y + insetY;
         int bottom = y + height - 1 - insetY;
 
-        // ตรวจขอบบนและขอบล่าง
+        // ตรวจด้านบนและด้านล่าง
         for (int px = left; px <= right; px += SAMPLE_STEP) {
             if (isWallPixel(px, top) ||
                 isWallPixel(px, bottom)) {
@@ -162,7 +243,7 @@ public class MazeMap {
             }
         }
 
-        // ตรวจขอบซ้ายและขอบขวา
+        // ตรวจด้านซ้ายและด้านขวา
         for (int py = top; py <= bottom; py += SAMPLE_STEP) {
             if (isWallPixel(left, py) ||
                 isWallPixel(right, py)) {
@@ -170,11 +251,11 @@ public class MazeMap {
             }
         }
 
-        // ตรวจมุมทั้งสี่
-        return isWallPixel(left, top)
+        // ตรวจปลายขอบให้ครบ
+        return isWallPixel(right, bottom)
                 || isWallPixel(right, top)
                 || isWallPixel(left, bottom)
-                || isWallPixel(right, bottom);
+                || isWallPixel(left, top);
     }
 
     private boolean isWallPixel(int x, int y) {
@@ -186,15 +267,14 @@ public class MazeMap {
         return wall[y][x];
     }
 
+    // ตรวจถึงประตูทางออก
     public boolean reachedGoal(
             int x,
             int y,
             int width,
             int height
     ) {
-        Rectangle player =
-                new Rectangle(x, y, width, height);
-
-        return player.intersects(goal);
+        return new Rectangle(x, y, width, height)
+                .intersects(goal);
     }
 }
