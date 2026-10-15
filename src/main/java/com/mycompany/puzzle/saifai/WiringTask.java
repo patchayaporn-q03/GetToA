@@ -1,4 +1,6 @@
+
 package com.mycompany.puzzle.saifai;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -10,33 +12,26 @@ import java.time.format.DateTimeFormatter;
 
 public class WiringTask extends JPanel {
 
-    private static final int WIDTH = 900;
-    private static final int HEIGHT = 700;
+    private static final int WIDTH = 1280;
+    private static final int HEIGHT = 720;
     private static final int TOTAL_WIRES = 10;
 
-    private Color[] colors = {
-        Color.RED,
-        Color.BLUE,
-        Color.YELLOW,
-        Color.MAGENTA,
-        Color.GREEN,
-        Color.ORANGE,
-        Color.GRAY,
-        Color.WHITE,
-        Color.BLACK,
-        Color.PINK
+    private final Color[] colors = {
+        Color.RED, Color.BLUE, Color.YELLOW, Color.MAGENTA,
+        Color.GREEN, Color.ORANGE, Color.GRAY, Color.WHITE,
+        Color.BLACK, Color.PINK
     };
 
-    private String[] names = {
+    private final String[] names = {
         "RED", "BLUE", "YELLOW", "MAGENTA", "GREEN",
         "ORANGE", "GRAY", "WHITE", "BLACK", "PINK"
     };
 
-    private int[] rightOrder = {
+    private final int[] rightOrder = {
         2, 4, 0, 5, 1, 3, 8, 6, 9, 7
     };
 
-    private boolean[] connected = new boolean[TOTAL_WIRES];
+    private final boolean[] connected = new boolean[TOTAL_WIRES];
 
     private int selected = -1;
     private int mouseX, mouseY;
@@ -46,41 +41,50 @@ public class WiringTask extends JPanel {
     private int seconds = 0;
     private Timer gameTimer;
 
-    private int leftX = 180;
-    private int rightX = 770;
+    // ปรับตำแหน่งสายไฟให้เหมาะกับหน้าต่าง 1280 x 720
+    private final int leftX = 300;
+    private final int rightX = 980;
 
-    private int[] ys = {
-        145, 190, 235, 280, 325,
-        370, 415, 460, 505, 550
+    private final int[] ys = {
+        155, 200, 245, 290, 335,
+        380, 425, 470, 515, 560
     };
 
     private static double puzzleTime;
     private static int puzzleScore;
-
     private static boolean played = false;
+
     private final Runnable onFinish;
 
     public WiringTask() {
         this(null);
     }
 
-    // onFinish ถูกเรียกหลังต่อสายครบและโชว์หน้าสำเร็จครู่หนึ่ง หรือเมื่อกด Esc (ใช้ปิด popup)
     public WiringTask(Runnable onFinish) {
         this.onFinish = onFinish;
+
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setBackground(new Color(25, 30, 45));
+        setFocusable(true);
+
         if (onFinish != null) {
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+            getInputMap(WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+
             getActionMap().put("close", new AbstractAction() {
+                @Override
                 public void actionPerformed(ActionEvent e) {
-                    gameTimer.stop();
+                    if (gameTimer != null) {
+                        gameTimer.stop();
+                    }
                     onFinish.run();
                 }
             });
         }
-        setPreferredSize(new Dimension(WIDTH, HEIGHT));
-        setBackground(new Color(25, 30, 45));
 
         addMouseListener(new MouseAdapter() {
 
+            @Override
             public void mousePressed(MouseEvent e) {
                 if (won) {
                     return;
@@ -103,6 +107,7 @@ public class WiringTask extends JPanel {
                 repaint();
             }
 
+            @Override
             public void mouseReleased(MouseEvent e) {
                 if (selected == -1 || won) {
                     return;
@@ -131,8 +136,9 @@ public class WiringTask extends JPanel {
                         won = true;
                         gameTimer.stop();
                         puzzleComplete(seconds);
-                        if (WiringTask.this.onFinish != null) {
-                            Timer t = new Timer(2500, ev -> WiringTask.this.onFinish.run());
+
+                        if (onFinish != null) {
+                            Timer t = new Timer(2500, ev -> onFinish.run());
                             t.setRepeats(false);
                             t.start();
                         }
@@ -146,6 +152,7 @@ public class WiringTask extends JPanel {
 
         addMouseMotionListener(new MouseMotionAdapter() {
 
+            @Override
             public void mouseDragged(MouseEvent e) {
                 mouseX = e.getX();
                 mouseY = e.getY();
@@ -153,20 +160,17 @@ public class WiringTask extends JPanel {
             }
         });
 
-        gameTimer = new Timer(1000, new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                if (!won) {
-                    seconds++;
-                    repaint();
-                }
+        gameTimer = new Timer(1000, e -> {
+            if (!won) {
+                seconds++;
+                repaint();
             }
         });
 
         gameTimer.start();
     }
 
-    // คำนวณคะแนนเมื่อเล่นจบ
+    // คำนวณคะแนนและบันทึกข้อมูลเมื่อเล่นจบ
     public static void puzzleComplete(double time) {
         puzzleTime = time;
         played = true;
@@ -185,40 +189,40 @@ public class WiringTask extends JPanel {
         System.out.println("Time = " + puzzleTime + " seconds");
         System.out.println("Puzzle Score = " + puzzleScore);
 
-        // บันทึกข้อมูลลงไฟล์ CSV
         saveToCSV(puzzleTime, puzzleScore);
     }
 
-    // บันทึกวัน เวลา และคะแนนลง CSV
     private static void saveToCSV(double time, int score) {
-        String fileName = com.mycompany.data.CharacterData.DIR + "/wiringtask.csv";
-        File file = new File(fileName);
+        // บันทึกไว้ในโฟลเดอร์โปรเจกต์ หากไม่ได้กำหนด DIR
+        File file = new File("wiringtask.csv");
 
         try {
+            File parent = file.getAbsoluteFile().getParentFile();
+
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+
             boolean newFile = !file.exists() || file.length() == 0;
 
-            FileWriter writer = new FileWriter(file, true);
+            try (FileWriter writer = new FileWriter(file, true)) {
+                if (newFile) {
+                    writer.append("Date,Time_Seconds,Score");
+                    writer.append(System.lineSeparator());
+                }
 
-            // เพิ่มหัวตารางเมื่อไฟล์ยังว่าง
-            if (newFile) {
-                writer.append("Date,Time_Seconds,Score");
+                String date = LocalDateTime.now().format(
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                );
+
+                writer.append(date).append(",");
+                writer.append(String.valueOf(time)).append(",");
+                writer.append(String.valueOf(score));
                 writer.append(System.lineSeparator());
             }
 
-            String date = LocalDateTime.now().format(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            );
-
-            writer.append(date).append(",");
-            writer.append(String.valueOf(time)).append(",");
-            writer.append(String.valueOf(score));
-            writer.append(System.lineSeparator());
-
-            writer.close();
-
             System.out.println("CSV saved successfully!");
-            System.out.println("File location: "
-                    + file.getAbsolutePath());
+            System.out.println("File location: " + file.getAbsolutePath());
 
         } catch (IOException e) {
             System.out.println("Cannot save CSV file!");
@@ -238,77 +242,110 @@ public class WiringTask extends JPanel {
         return puzzleScore;
     }
 
+    @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 28));
-        g.drawString("WIRING TASK", 330, 45);
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(
+            RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON
+        );
 
-        g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("TIME: "
-                + String.format("%02d:%02d",
-                seconds / 60, seconds % 60), 700, 45);
+        // หัวข้อ
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 32));
+        drawCentered(g2, "WIRING TASK", WIDTH / 2, 45);
 
-        g.setColor(new Color(45, 52, 70));
-        g.fillRoundRect(45, 75, 810, 545, 25, 25);
+        g2.setFont(new Font("Arial", Font.BOLD, 22));
+        g2.drawString(
+            "TIME: " + String.format(
+                "%02d:%02d", seconds / 60, seconds % 60
+            ),
+            1020, 45
+        );
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 16));
-        g.drawString("CONNECT THE WIRES", 335, 105);
+        // พื้นที่เกม
+        g2.setColor(new Color(45, 52, 70));
+        g2.fillRoundRect(100, 75, 1080, 555, 25, 25);
+
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 20));
+        drawCentered(g2, "CONNECT THE WIRES", WIDTH / 2, 110);
 
         // วาดสายไฟที่เชื่อมต่อแล้ว
         for (int i = 0; i < TOTAL_WIRES; i++) {
             if (connected[i]) {
-                drawWire(g, leftX, ys[i],
-                        rightX, ys[rightOrderIndex(i)], colors[i]);
+                drawWire(
+                    g2, leftX, ys[i],
+                    rightX, ys[rightOrderIndex(i)],
+                    colors[i]
+                );
             }
         }
 
-        // วาดสายไฟขณะลาก
+        // วาดสายไฟระหว่างลาก
         if (selected != -1 && !won) {
-            drawWire(g, leftX, ys[selected],
-                    mouseX, mouseY, colors[selected]);
+            drawWire(
+                g2, leftX, ys[selected],
+                mouseX, mouseY, colors[selected]
+            );
         }
 
-        // วาดช่องสีฝั่งซ้าย
+        // ช่องสีฝั่งซ้าย
         for (int i = 0; i < TOTAL_WIRES; i++) {
-            drawSocket(g, leftX, ys[i], colors[i], names[i]);
+            drawSocket(g2, leftX, ys[i], colors[i], names[i]);
         }
 
-        // วาดช่องสีฝั่งขวา
+        // ช่องสีฝั่งขวา
         for (int i = 0; i < TOTAL_WIRES; i++) {
             int colorIndex = rightOrder[i];
 
-            drawSocket(g, rightX, ys[i],
-                    colors[colorIndex], names[colorIndex]);
+            drawSocket(
+                g2, rightX, ys[i],
+                colors[colorIndex], names[colorIndex]
+            );
         }
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 16));
-        g.drawString("CONNECTED: " + completed
-                + " / " + TOTAL_WIRES, 355, 655);
+        // สถานะการเชื่อมต่อ
+        g2.setColor(Color.WHITE);
+        g2.setFont(new Font("Arial", Font.BOLD, 20));
+        drawCentered(
+            g2, "CONNECTED: " + completed + " / " + TOTAL_WIRES,
+            WIDTH / 2, 665
+        );
 
         // หน้าจอเมื่อเล่นสำเร็จ
         if (won) {
-            g.setColor(new Color(0, 0, 0, 210));
-            g.fillRoundRect(220, 235, 460, 200, 25, 25);
+            g2.setColor(new Color(0, 0, 0, 220));
+            g2.fillRoundRect(350, 220, 580, 240, 25, 25);
 
-            g.setColor(Color.GREEN);
-            g.setFont(new Font("Arial", Font.BOLD, 30));
-            g.drawString("TASK COMPLETED!", 320, 285);
+            g2.setColor(Color.GREEN);
+            g2.setFont(new Font("Arial", Font.BOLD, 34));
+            drawCentered(g2, "TASK COMPLETED!", WIDTH / 2, 275);
 
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 20));
-            g.drawString("Time: " + puzzleTime + " seconds",
-                    360, 330);
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Arial", Font.BOLD, 24));
+            drawCentered(
+                g2, "Time: " + puzzleTime + " seconds",
+                WIDTH / 2, 330
+            );
 
-            g.drawString("Puzzle Score: "
-                    + puzzleScore + " / 70", 360, 370);
+            drawCentered(
+                g2, "Puzzle Score: " + puzzleScore + " / 70",
+                WIDTH / 2, 375
+            );
 
-            g.setFont(new Font("Arial", Font.PLAIN, 14));
-            g.drawString("save", 445, 405);
+            g2.setFont(new Font("Arial", Font.PLAIN, 17));
+            drawCentered(g2, "Returning...", WIDTH / 2, 420);
         }
+
+        g2.dispose();
+    }
+
+    private void drawCentered(Graphics g, String text, int centerX, int y) {
+        FontMetrics fm = g.getFontMetrics();
+        g.drawString(text, centerX - fm.stringWidth(text) / 2, y);
     }
 
     private int rightOrderIndex(int colorIndex) {
@@ -317,13 +354,11 @@ public class WiringTask extends JPanel {
                 return i;
             }
         }
-
         return -1;
     }
 
-    // วาดชื่อสีไว้ทางซ้ายของช่องสี
-    private void drawSocket(Graphics g, int x, int y,
-                            Color color, String name) {
+    private void drawSocket(
+            Graphics g, int x, int y, Color color, String name) {
 
         int size = 24;
 
@@ -331,51 +366,44 @@ public class WiringTask extends JPanel {
         g.setColor(Color.WHITE);
 
         FontMetrics fm = g.getFontMetrics();
-        int textWidth = fm.stringWidth(name);
-        int textX = x - 40 - textWidth;
-
+        int textX = x - 40 - fm.stringWidth(name);
         g.drawString(name, textX, y + 5);
 
-        // วาดช่องสี
         g.setColor(color);
         g.fillOval(x - size / 2, y - size / 2, size, size);
 
-        // วาดขอบช่องสี
         g.setColor(Color.WHITE);
-        g.drawOval(x - size / 2, y - size / 2,
-                size, size);
+        g.drawOval(x - size / 2, y - size / 2, size, size);
     }
 
-    private void drawWire(Graphics g, int x1, int y1,
-                          int x2, int y2, Color color) {
+    private void drawWire(
+            Graphics g, int x1, int y1,
+            int x2, int y2, Color color) {
 
         Graphics2D g2 = (Graphics2D) g;
 
-        g2.setStroke(new BasicStroke(5,
-                BasicStroke.CAP_ROUND,
-                BasicStroke.JOIN_ROUND));
+        Stroke oldStroke = g2.getStroke();
+
+        g2.setStroke(new BasicStroke(
+            5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND
+        ));
 
         g2.setColor(color);
         g2.drawLine(x1, y1, x2, y2);
 
-        g2.setStroke(new BasicStroke(1));
+        g2.setStroke(oldStroke);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Wiring Task");
 
-            public void run() {
-                JFrame frame = new JFrame("Wiring Task");
-
-                frame.setDefaultCloseOperation(
-                        JFrame.EXIT_ON_CLOSE);
-
-                frame.add(new WiringTask());
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setResizable(false);
-                frame.setVisible(true);
-            }
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setContentPane(new WiringTask());
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setResizable(false);
+            frame.setVisible(true);
         });
     }
 }
