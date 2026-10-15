@@ -40,6 +40,7 @@ public class WiringTask extends JPanel {
 
     private int seconds = 0;
     private Timer gameTimer;
+    private JButton closeButton;
 
     // ปรับตำแหน่งสายไฟให้เหมาะกับหน้าต่าง 1280 x 720
     private final int leftX = 300;
@@ -66,21 +67,42 @@ public class WiringTask extends JPanel {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(new Color(25, 30, 45));
         setFocusable(true);
+        setLayout(null);
 
-        if (onFinish != null) {
-            getInputMap(WHEN_IN_FOCUSED_WINDOW)
-                .put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+        // ปุ่มปิด
+        closeButton = new JButton("ปิด");
+        closeButton.setFont(new Font("Tahoma", Font.BOLD, 14));
+        closeButton.setFocusable(false);
+        closeButton.setBounds(1190, 10, 70, 30);
 
-            getActionMap().put("close", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (gameTimer != null) {
-                        gameTimer.stop();
-                    }
-                    onFinish.run();
+        closeButton.addActionListener(e -> {
+            if (gameTimer != null) {
+                gameTimer.stop();
+            }
+
+            if (onFinish != null) {
+                onFinish.run();
+            } else {
+                Window window = SwingUtilities.getWindowAncestor(this);
+
+                if (window != null) {
+                    window.dispose();
                 }
-            });
-        }
+            }
+        });
+
+        add(closeButton);
+
+        // ปุ่ม ESC เพื่อปิดหน้าจอ
+        getInputMap(WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+
+        getActionMap().put("close", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                closeButton.doClick();
+            }
+        });
 
         addMouseListener(new MouseAdapter() {
 
@@ -134,14 +156,12 @@ public class WiringTask extends JPanel {
 
                     if (completed == TOTAL_WIRES) {
                         won = true;
-                        gameTimer.stop();
-                        puzzleComplete(seconds);
 
-                        if (onFinish != null) {
-                            Timer t = new Timer(2500, ev -> onFinish.run());
-                            t.setRepeats(false);
-                            t.start();
+                        if (gameTimer != null) {
+                            gameTimer.stop();
                         }
+
+                        puzzleComplete(seconds);
                     }
                 }
 
@@ -194,7 +214,8 @@ public class WiringTask extends JPanel {
 
     private static void saveToCSV(double time, int score) {
         // บันทึกไว้ในโฟลเดอร์โปรเจกต์ หากไม่ได้กำหนด DIR
-        File file = new File("wiringtask.csv");
+        // ไฟล์ csv ทุกไฟล์เก็บในโฟลเดอร์ data (ดู CharacterData.DIR)
+        File file = new File(com.mycompany.data.CharacterData.DIR, "wiringtask.csv");
 
         try {
             File parent = file.getAbsoluteFile().getParentFile();
@@ -337,7 +358,7 @@ public class WiringTask extends JPanel {
             );
 
             g2.setFont(new Font("Arial", Font.PLAIN, 17));
-            drawCentered(g2, "Returning...", WIDTH / 2, 420);
+            drawCentered(g2, "Press close to return", WIDTH / 2, 420);
         }
 
         g2.dispose();
