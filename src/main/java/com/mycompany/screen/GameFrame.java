@@ -20,7 +20,6 @@ public class GameFrame {
     public static final int SCREEN_W = 1280;
     public static final int SCREEN_H = 720;
 
-    // ฟอนต์ของทั้งโปรเจกต์ ถ้าภาษาไทยเป็นช่องสี่เหลี่ยมให้เปลี่ยนเป็น "Tahoma"
     public static final String FONT_NAME = "Tahoma";
     private static GradeManager gradeManager = new GradeManager();
     // ตัวสลับหน้า (cardLayout/cards) และหน้าที่ต้องอ้างถึงภายหลัง: หน้าสรุป หน้าเลือกตัวละคร และแมพ (สร้างใหม่ตอนเริ่มเกม)
@@ -41,6 +40,8 @@ public class GameFrame {
 
             cardLayout = new CardLayout();
             cards = new JPanel(cardLayout);
+            // โปร่งใส ให้พื้นหลังเต็มหน้าต่างที่ ScaledContainer วาดไว้ด้านล่างมองเห็นได้
+            cards.setOpaque(false);
 
             //cards.add(new LoadingScreen(), "loading");
             cards.add(new MainMenuScreen(), "mainmenu");
@@ -74,18 +75,15 @@ public class GameFrame {
             }
         }
     }
-    // คืน GradeManager (หมายเหตุ: ตัวที่ใช้เก็บคะแนนจริงคือ GradeManager.getInstance())
+    // คืน GradeManager ( ตัวที่ใช้เก็บคะแนนจริงคือ GradeManager.getInstance())
     public static GradeManager getGradeManager() {
         return gradeManager;
     }
 
     // เริ่มเกมใหม่: ล้างคะแนนทั้งหมด และสร้างแมพ 1/2 ใหม่ (กล่อง ประตู และตำแหน่งผู้เล่นกลับเป็นค่าเริ่มต้น)
     public static void startNewGame() {
-        // บันทึกตัวละครที่เลือกบนหน้าเลือกตัวละคร เพื่อให้แมพใช้ตัวละครตรงกัน
         characterSelect.saveCurrentSelection();
         GradeManager.getInstance().reset();
-        //com.mycompany.puzzle.PuzzleScore.reset();
-        //com.mycompany.puzzle.saifai.WiringTask.reset();
         resultScreen.setNext("mainmenu", "หน้าหลัก");
 
         cards.remove(map1);

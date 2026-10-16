@@ -33,12 +33,9 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
     private final int designW;
     private final int designH;
 
-    // คอมโพเนนต์ที่เมาส์อยู่ด้านบนตอนนี้ (ไว้ส่ง enter/exit)
     private Component hover;
-    // คอมโพเนนต์ที่ถูกกดค้างไว้ (ลากเมาส์ต่อให้ตัวนี้แม้ออกนอกกรอบ จนกว่าจะปล่อย)
     private Component pressTarget;
 
-    // content = หน้าจอจริงที่ออกแบบไว้ขนาด designW x designH; ตัวครอบนี้จะสเกลมันตามขนาดหน้าต่าง
     public ScaledContainer(JComponent content, int designW, int designH) {
         super(null);
         this.content = content;
@@ -50,7 +47,6 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         content.setBounds(0, 0, designW, designH);
     }
 
-    /** เรียกครั้งเดียวก่อนสร้างหน้าต่าง: ให้ repaint ของลูกทุกตัววาดตัวครอบใหม่ทั้งหมด */
     public static void install() {
         RepaintManager.setCurrentManager(new RepaintManager() {
             @Override
@@ -65,17 +61,12 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         });
     }
 
-    /**
-     * แสดง popup แบบสเกลได้: ใส่ content (ขนาดดีไซน์ = preferred size ของมัน) ลงใน dialog
-     * แล้วขยาย dialog ให้ทับพื้นที่หน้าจอเกมของหน้าต่างหลักพอดี (modal จึงบล็อกจนกว่าจะปิด)
-     */
     public static void showDialog(javax.swing.JDialog dialog, JComponent content, Component anchor) {
         Dimension d = content.getPreferredSize();
         dialog.add(new ScaledContainer(content, d.width, d.height));
         Window owner = SwingUtilities.getWindowAncestor(anchor);
         if (owner instanceof javax.swing.RootPaneContainer rpc) {
             Container cp = rpc.getContentPane();
-            // ขนาดพอดีกับสัดส่วนดีไซน์ จัดกึ่งกลางพื้นที่เกม (ไม่มีขอบดำให้ dialog ต้องวาดเอง)
             double s = Math.min(cp.getWidth() / (double) d.width, cp.getHeight() / (double) d.height);
             int w = (int) Math.round(d.width * s);
             int h = (int) Math.round(d.height * s);
@@ -88,13 +79,11 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         dialog.setVisible(true);
     }
 
-    // ขนาดเริ่มต้นของหน้าต่าง = ขนาดที่ออกแบบไว้
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(designW, designH);
     }
 
-    // ลูกมีขนาดคงที่ตามดีไซน์เสมอ (การย่อ/ขยายทำตอนวาด ไม่ใช่ตอนจัดวาง)
     @Override
     public void doLayout() {
         content.setBounds(0, 0, designW, designH);
@@ -115,14 +104,51 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         return (getHeight() - designH * scale()) / 2;
     }
 
-    // ระบายพื้นหลังสีดำทั้งหมด (ส่วนที่เป็นขอบเมื่อสัดส่วนหน้าต่างไม่ตรง)
+    private static final String BACKDROP = "ScaledContainer.backdrop";
+
+    public static void useAsBackdrop(JComponent screen, javax.swing.JLabel background) {
+        background.setVisible(false);
+        screen.setOpaque(false);
+        screen.putClientProperty(BACKDROP, background);
+    }
+
+    private javax.swing.Icon currentBackdrop() {
+        Component screen = content;
+        if (content.getClientProperty(BACKDROP) == null) {
+            screen = null;
+            for (Component c : content.getComponents()) {
+                if (c.isVisible()) {
+                    screen = c;
+                    break;
+                }
+            }
+        }
+        if (screen instanceof JComponent jc && jc.getClientProperty(BACKDROP) instanceof javax.swing.JLabel bg) {
+            return bg.getIcon();
+        }
+        return null;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
+        javax.swing.Icon bg = currentBackdrop();
+        if (bg == null || bg.getIconWidth() <= 0 || bg.getIconHeight() <= 0) {
+            return;
+        }
+        Graphics2D g2 = (Graphics2D) g.create();
+        try {
+            double s = Math.max(getWidth() / (double) bg.getIconWidth(), getHeight() / (double) bg.getIconHeight());
+            g2.translate((getWidth() - bg.getIconWidth() * s) / 2, (getHeight() - bg.getIconHeight() * s) / 2);
+            g2.scale(s, s);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            bg.paintIcon(this, g2, 0, 0);
+        } finally {
+            g2.dispose();
+        }
     }
 
-    // วาดลูกโดยย่อ/ขยายและเลื่อนตำแหน่งตาม scale()/offset ใช้ bilinear ให้ภาพเรียบ แล้วตัดไม่ให้วาดเกินพื้นที่ดีไซน์
     @Override
     protected void paintChildren(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
@@ -140,13 +166,11 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         }
     }
 
-    // ซ่อนลูกจากการหา target ของ Swing (พิกัดไม่ตรงกับที่ scale) แล้วจัดการเมาส์เองด้านล่าง
     @Override
     public boolean contains(int x, int y) {
         return false;
     }
 
-    // เริ่มรับเหตุการณ์เมาส์ระดับหน้าต่างเมื่อถูกแสดง
     @Override
     public void addNotify() {
         super.addNotify();
@@ -154,24 +178,20 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
                 AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK);
     }
 
-    // เลิกรับเหตุการณ์เมาส์เมื่อถูกเอาออก (กัน listener ค้าง)
     @Override
     public void removeNotify() {
         Toolkit.getDefaultToolkit().removeAWTEventListener(this);
         super.removeNotify();
     }
 
-    // รับเมาส์ระดับหน้าต่าง แปลงพิกัดจอเป็นพิกัดดีไซน์ แล้วส่งให้คอมโพเนนต์ที่ถูกต้อง (press/release/drag/click/enter/exit)
     @Override
     public void eventDispatched(AWTEvent ev) {
         if (!(ev instanceof MouseEvent e) || e instanceof MouseWheelEvent) {
             return;
         }
-        // รับเฉพาะเหตุการณ์ระดับหน้าต่าง (เพราะ contains() เป็น false Swing จึงไม่ส่งให้ลูกเอง)
         if (!(e.getSource() instanceof Window w) || w != SwingUtilities.getWindowAncestor(this)) {
             return;
         }
-        // ตำแหน่งเมาส์บนจอ → พิกัดของตัวครอบ → พิกัดดีไซน์ (หักขอบดำแล้วหารด้วย scale)
         Point p = e.getLocationOnScreen();
         SwingUtilities.convertPointFromScreen(p, this);
         double s = scale();
@@ -179,14 +199,12 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         int cy = (int) Math.floor((p.y - offsetY()) / s);
 
         switch (e.getID()) {
-            // กด: หา target, ย้าย hover, จำ pressTarget ไว้ให้ลากต่อได้ แล้วส่ง PRESSED
             case MouseEvent.MOUSE_PRESSED -> {
                 Component t = findTarget(cx, cy);
                 updateHover(e, t, cx, cy);
                 pressTarget = t;
                 send(t, e, MouseEvent.MOUSE_PRESSED, cx, cy);
             }
-            // ปล่อย: ส่งให้ตัวที่ถูกกด (ถ้ามี) แล้วเคลียร์ pressTarget เมื่อปล่อยครบทุกปุ่ม
             case MouseEvent.MOUSE_RELEASED -> {
                 Component t = pressTarget != null ? pressTarget : findTarget(cx, cy);
                 send(t, e, MouseEvent.MOUSE_RELEASED, cx, cy);
@@ -196,13 +214,9 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
                 }
                 updateHover(e, findTarget(cx, cy), cx, cy);
             }
-            // ลาก: ส่งให้ตัวที่ถูกกดค้าง (แม้เมาส์ออกนอกกรอบของมัน)
             case MouseEvent.MOUSE_DRAGGED -> send(pressTarget, e, MouseEvent.MOUSE_DRAGGED, cx, cy);
-            // คลิก (กด+ปล่อยที่เดิม): ส่งให้ตัวที่อยู่ใต้เมาส์
             case MouseEvent.MOUSE_CLICKED -> send(findTarget(cx, cy), e, MouseEvent.MOUSE_CLICKED, cx, cy);
-            // เมาส์ออกจากหน้าต่าง: ไม่มี target แล้ว
             case MouseEvent.MOUSE_EXITED -> updateHover(e, null, cx, cy);
-            // เมาส์เคลื่อนที่ / เข้าหน้าต่าง: อัปเดต hover แล้วส่ง MOVED
             default -> { // MOVED, ENTERED
                 Component t = findTarget(cx, cy);
                 updateHover(e, t, cx, cy);
@@ -211,7 +225,6 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         }
     }
 
-    // คอมโพเนนต์ลึกสุดที่ตำแหน่ง (พิกัดดีไซน์) และมี mouse listener (ไล่ขึ้นไปหาพ่อถ้าตัวนั้นไม่มี)
     private Component findTarget(int cx, int cy) {
         if (cx < 0 || cy < 0 || cx >= designW || cy >= designH) {
             return null;
@@ -226,7 +239,6 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         return c;
     }
 
-    // ถ้าเมาส์ย้ายไปอยู่บนคอมโพเนนต์ใหม่ ส่ง EXITED ให้ตัวเก่าและ ENTERED ให้ตัวใหม่
     private void updateHover(MouseEvent src, Component target, int cx, int cy) {
         if (target == hover) {
             return;
@@ -237,7 +249,6 @@ public class ScaledContainer extends JPanel implements AWTEventListener {
         send(target, src, MouseEvent.MOUSE_ENTERED, cx, cy);
     }
 
-    // สร้าง MouseEvent ใหม่ในพิกัดของ target (แปลงจากพิกัดดีไซน์) แล้วส่งให้ target
     private void send(Component target, MouseEvent src, int id, int cx, int cy) {
         if (target == null) {
             return;

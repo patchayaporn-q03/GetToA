@@ -14,9 +14,15 @@ public class MainMenuScreen extends javax.swing.JPanel {
     // สร้างเมนูหลักจาก form แล้วย่อรูปพื้นหลัง 1920x1080 ให้พอดีหน้าจอ (JLabel ไม่ย่อรูปให้เอง)
     public MainMenuScreen() {
         initComponents();
-        // พื้นหลังเป็นรูป 1920x1080 ย่อให้พอดีหน้าจอ 1280x720 (JLabel ไม่ย่อรูปให้เอง)
         jLabel1.setIcon(ImageUtil.scaledIcon("/images/mainmenu/mapbass.png",
                 GameFrame.SCREEN_W, GameFrame.SCREEN_H));
+        ScaledContainer.useAsBackdrop(this, jLabel1);
+        for (javax.swing.JButton b : new javax.swing.JButton[] {playGame, openAvatar, exitGame}) {
+            b.setFocusPainted(false);
+            b.setFocusable(false);
+            b.setRolloverEnabled(false);
+            b.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        }
     }
 
     @SuppressWarnings("unchecked")

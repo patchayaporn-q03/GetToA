@@ -199,9 +199,7 @@ public class WalkSprite {
         }
     }
 
-    // รูปท่ายืนตรง (หันหน้า) ของตัวละครตามชื่อรูป ใช้ในหน้าเลือกตัวละคร ให้ตรงกับตัวที่เดินในเกม
-    // คืน null ถ้าตัวละครนั้นไม่มี sheet (ผู้เรียกใช้รูป standy เดิมแทน)
-    // synchronized เพราะมีเธรด preload เบื้องหลังเรียกพร้อมกับ EDT
+    //รูปท่ายืนตรง (หันหน้า) ของตัวละครตามชื่อรูป ใช้ในหน้าเลือกตัวละคร ให้ตรงกับตัวที่เดินในเกม
     public static synchronized ImageIcon standingIcon(String image, boolean male, int size) {
         String key = (male ? "m:" : "f:") + image + ":" + size;
         if (!STANDING.containsKey(key)) {

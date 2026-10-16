@@ -17,16 +17,12 @@ public class GameMap1 extends javax.swing.JPanel {
      * Creates new form GameMap1
      */
     public GameMap1() {
-        // สร้างองค์ประกอบจาก form (พื้นหลัง โต๊ะ ฯลฯ)
         initComponents();
+        setBackground(java.awt.Color.BLACK);
         walkable = buildWalkableArea(true);
-        // วางกล่องสมบัติ 6 กล่องลงแมพ
         setupBoxes();
-        // สร้างตัวผู้เล่น ผูกปุ่ม WASD/E และตัวจับเวลาเดิน
         setupPlayer();
-        // ปุ่มกลับหน้าหลัก
         setupBackButton();
-        // ทุกครั้งที่หน้านี้แสดง ใช้ตัวละครที่ผู้เล่นเลือกล่าสุด
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentShown(java.awt.event.ComponentEvent e) {
@@ -259,12 +255,10 @@ public class GameMap1 extends javax.swing.JPanel {
 
     //ตัวละครเดินด้วย W A S D (กดค้างเพื่อเดินต่อเนื่อง, กดสองปุ่มพร้อมกันเดินทแยงได้)
     private void setupPlayer() {
-        // ตัวละครเริ่มต้นคือ girl.png (ย่อให้พอดี PLAYER_SIZE) ถ้าเลือกตัวละครไว้จะถูกแทนที่ใน refreshPlayerImage()
         java.awt.Image src = new javax.swing.ImageIcon(getClass().getResource(
                 "/images/girl.png")).getImage();
         player = new javax.swing.JLabel(new javax.swing.ImageIcon(
                 src.getScaledInstance(PLAYER_SIZE, PLAYER_SIZE, java.awt.Image.SCALE_SMOOTH)));
-        // index 0 = วางบนสุด เพื่อให้อยู่หน้าพื้นหลังและโต๊ะ
         add(player, new org.netbeans.lib.awtextra.AbsoluteConstraints(
                 SPAWN_X, SPAWN_Y, PLAYER_SIZE, PLAYER_SIZE), 0);
 
@@ -347,7 +341,6 @@ public class GameMap1 extends javax.swing.JPanel {
             if (dy != 0 && canStand(x, y + dy)) {
                 y += dy;
             }
-            // ย้ายตัวละครและเปลี่ยนเฟรมแอนิเมชันตามทิศที่เดิน
             player.setLocation(x, y);
             if (walkSprite != null) {
                 player.setIcon(walkSprite.walk(dx, dy));
@@ -355,7 +348,6 @@ public class GameMap1 extends javax.swing.JPanel {
 
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
-            // อัปเดตป้าย E ของหนังสือและของกล่องที่อยู่ใกล้
             prompt.setVisible(isNearBook());
             if (!boxesRemoved) {
                 gradeBox.updatePrompts(player);
@@ -398,7 +390,6 @@ public class GameMap1 extends javax.swing.JPanel {
         dialog.setUndecorated(true);
         com.mycompany.puzzle.PuzzleStation station =
                 new com.mycompany.puzzle.PuzzleStation(dialog::dispose);
-        // popup ทับหน้าจอเกมพอดี และสเกลตามขนาดหน้าต่าง
         ScaledContainer.showDialog(dialog, station, this);
         heldKeys.clear();
         // ผู้เล่นปิด popup หลังเล่นจบแล้ว ค่อยเปลี่ยนแมพ

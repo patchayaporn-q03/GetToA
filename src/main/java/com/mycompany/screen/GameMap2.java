@@ -19,6 +19,8 @@ public class GameMap2 extends javax.swing.JPanel {
     public GameMap2() {
         // สร้างองค์ประกอบจาก form (พื้นหลัง โต๊ะ ฯลฯ)
         initComponents();
+        // พื้นดำเหมือนขอบภาพแมพ กันเส้นขาว (สีเทาอ่อนของ panel) โผล่ตรงขอบเมื่อย่อ/ขยายหน้าต่าง
+        setBackground(java.awt.Color.BLACK);
         // วางกล่องสมบัติ 6 กล่องลงแมพ
         setupBoxes();
         // สร้างตัวผู้เล่น ผูกปุ่ม WASD/E และตัวจับเวลาเดิน
@@ -227,7 +229,6 @@ public class GameMap2 extends javax.swing.JPanel {
         return walkable.contains(new java.awt.Rectangle(x + HIT_X, y + HIT_Y, HIT_W, HIT_H));
     }
 
-    // หลังสรุปผลแล้วกล่องหายไปและเปิดไม่ได้อีก
     private boolean boxesRemoved = false;
 
     // ลบกล่องที่เหลือออกจากแมพ (หลังผู้เล่นเลือกสรุปผล) แล้วเปิดพื้นที่ที่เคยเป็นกล่องให้เดินผ่านได้
@@ -400,7 +401,6 @@ public class GameMap2 extends javax.swing.JPanel {
             if (dy != 0 && canStand(x, y + dy)) {
                 y += dy;
             }
-            // ย้ายตัวละครและเปลี่ยนเฟรมแอนิเมชันตามทิศที่เดิน
             player.setLocation(x, y);
             if (walkSprite != null) {
                 player.setIcon(walkSprite.walk(dx, dy));
@@ -408,12 +408,10 @@ public class GameMap2 extends javax.swing.JPanel {
 
             ((java.awt.LayoutManager2) getLayout()).addLayoutComponent(player,
                     new org.netbeans.lib.awtextra.AbsoluteConstraints(x, y, PLAYER_SIZE, PLAYER_SIZE));
-            // อัปเดตป้าย E ของจานอาหารและของกล่องที่อยู่ใกล้
             prompt.setVisible(isNearPlate());
             if (!boxesRemoved) {
                 gradeBox.updatePrompts(player);
             }
-            // ถึงประตูล่างหรือยัง: ถามสรุปผลครั้งเดียวต่อการเข้าประตู (doorAsked กันถามซ้ำ)
             int cx = x + PLAYER_SIZE / 2;
             boolean atDoor = doorOpen && y + HIT_Y >= DOOR_FEET_Y && cx >= DOOR_MIN_X && cx <= DOOR_MAX_X;
             if (atDoor && !doorAsked) {

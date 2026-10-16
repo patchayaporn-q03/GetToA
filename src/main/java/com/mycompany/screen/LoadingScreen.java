@@ -17,10 +17,6 @@ import java.awt.Image;
 import java.net.URL;
 import javax.swing.ImageIcon;
 
-/**
- * หน้าโหลดที่วาดเอง (ชื่อเกม + จุด loading + ตัวละครเด้ง) ตอนนี้ปิดไว้ใน GameFrame
- * @author lenovo
- */
 public class LoadingScreen extends JPanel {
     private static final int LOADING_TIME_MS = 3000;
     private static final String NEXT_SCREEN = "mainmenu";
@@ -52,7 +48,7 @@ public class LoadingScreen extends JPanel {
         timer.start();
     }
 
-    // วาดหน้าโหลดทั้งหมด: พื้นหลัง ชื่อเกม ข้อความ loading พร้อมจุด และตัวละครที่เด้งขึ้นลง
+    // หน้าโหลดทั้งหมด: พื้นหลัง ชื่อเกม ข้อความ loading พร้อมจุด และตัวละครที่เด้งขึ้นลง
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

@@ -10,7 +10,7 @@ import javax.swing.ImageIcon;
 /** ตัวช่วยโหลดรูปจาก resource แล้วย่อ/ขยายเป็นขนาดที่ต้องการอย่างคมชัด */
 public final class ImageUtil {
 
-    // คลาสตัวช่วยล้วน ๆ ไม่ให้สร้าง object
+    // คลาสตัวช่วยไม่ให้สร้าง object
     private ImageUtil() {
     }
 

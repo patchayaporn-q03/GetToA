@@ -16,9 +16,12 @@ public class CharacterSelect extends javax.swing.JPanel {
      */
     public CharacterSelect() {
         initComponents();
-        // พื้นหลังเป็นรูป 1920x1080 ย่อให้พอดีหน้าจอ 1280x720 (JLabel ไม่ย่อรูปให้เอง)
         jLabel1.setIcon(ImageUtil.scaledIcon("/images/exit/mapbass.png",
                 GameFrame.SCREEN_W, GameFrame.SCREEN_H));
+        ScaledContainer.useAsBackdrop(this, jLabel1);
+        backToMenu.setFocusPainted(false);
+        backToMenu.setFocusable(false);
+        backToMenu.setRolloverEnabled(false);
 
         //เลือกได้ทีละเพศ และเปลี่ยนรูปปุ่มเมื่อถูกเลือก
         javax.swing.ButtonGroup genderGroup = new javax.swing.ButtonGroup();
@@ -45,7 +48,7 @@ public class CharacterSelect extends javax.swing.JPanel {
         String[] last = com.mycompany.data.CharacterData.loadSettings();
         boolean startFemale = last == null || !last[0].trim().equalsIgnoreCase("male");
         (startFemale ? chickgirl : chickboy).setSelected(true);
-        showBoxes(startFemale);   // เลือกช่องเริ่มต้นให้ในเมธอดนี้
+        showBoxes(startFemale);   // เลือกช่องเริ่มต้น
         //framglass.setBackground(new java.awt.Color(255, 255, 255, 120));
         setupGlassPanel();
         preloadStandingPics();
@@ -89,7 +92,6 @@ public class CharacterSelect extends javax.swing.JPanel {
 
     // โหลดรูปตัวละครขนาด size x size ใช้ท่ายืนตรงจากแอนิเมชัน ถ้าไม่มี sheet ใช้รูป standy เดิม
     private javax.swing.ImageIcon loadPic(String name, int size) {
-        // ใช้ท่ายืนตรงจากแอนิเมชัน (ตัวเดียวกับที่เดินในเกม) ถ้าไม่มีใช้รูป standy เดิม
         javax.swing.ImageIcon standing = WalkSprite.standingIcon(name, characters == boys, size);
         if (standing != null) {
             return standing;
@@ -116,10 +118,8 @@ public class CharacterSelect extends javax.swing.JPanel {
         for (int i = 0; i < boxes.length && i < characters.size(); i++) {
             final int index = i;
             String image = characters.get(i).getImage();
-            // วาดตัวละครทับบนกรอบ ให้อยู่ในขอบเขตกล่อง 100x100 (ตัวละคร 80x80 อยู่กึ่งกลาง)
             boxes[i].setIcon(boxWithPic("box_norma", image));
             boxes[i].setSelectedIcon(boxWithPic("box_selected", image));
-            // กดช่องแล้วแสดงตัวละครตัวใหญ่ด้านซ้าย และใส่ชื่อตัวละครในช่องชื่อ
             boxListeners[i] = e -> selectCharacter(index, null);
             boxes[i].addActionListener(boxListeners[i]);
         }
@@ -140,7 +140,7 @@ public class CharacterSelect extends javax.swing.JPanel {
         selectCharacter(start, savedName);
     }
 
-    //แสดงตัวละครที่เลือก name = ชื่อที่ผู้เล่นเคยตั้ง (null = ใช้ชื่อตัวละครจาก csv)
+    //แสดงตัวละครที่เลือก name = ชื่อที่ผู้เล่นเคยตั้ง
     private void selectCharacter(int index, String name) {
         selectedIndex = index;
         com.mycompany.data.CharacterData c = characters.get(index);

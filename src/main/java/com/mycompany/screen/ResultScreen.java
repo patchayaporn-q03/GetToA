@@ -23,7 +23,6 @@ public class ResultScreen extends javax.swing.JPanel {
             @Override
             public void componentShown(java.awt.event.ComponentEvent e) {
                 refresh();
-                // บันทึกลง CSV หนึ่งครั้งต่อการเปิดหน้านี้ (ไม่บันทึกตอนสร้างหน้า)
                 com.mycompany.grade.GradeManager.getInstance().saveResult();
             }
         });
@@ -181,7 +180,6 @@ public class ResultScreen extends javax.swing.JPanel {
     private javax.swing.JLabel map;
     // End of variables declaration//GEN-END:variables
 
-    // ไว้ทดสอบหน้านี้หน้าเดียว (ไม่ได้ใช้ตอนเล่นจริง)
     public static void main(String[] args) {
     javax.swing.SwingUtilities.invokeLater(() -> {
         javax.swing.JFrame frame = new javax.swing.JFrame("Test ResultScreen");
